@@ -6,6 +6,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PointF;
 import android.graphics.PorterDuff;
+import android.graphics.RectF;
 import android.support.v4.view.MotionEventCompat;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -22,6 +23,9 @@ public class FidgiSurfaceView extends SurfaceView implements SurfaceHolder.Callb
     private GraphicThread mGraphicThread;
     private Paint mPaint;
     private PointF mCirclePosition;
+    private Spinner mSpinner;
+    private RectF mOval;
+
 
 
     public FidgiSurfaceView(Context context) {
@@ -31,6 +35,8 @@ public class FidgiSurfaceView extends SurfaceView implements SurfaceHolder.Callb
         mPaint = new Paint();
         mPaint.setColor(Color.RED);
         mCirclePosition = new PointF(500,500);
+        mSpinner = new Spinner(null, mCirclePosition,200);
+        mOval = new RectF(mCirclePosition.x - 100, mCirclePosition.y -100, mCirclePosition.x+100, mCirclePosition.y+100);
     }
 
 
@@ -57,7 +63,8 @@ public class FidgiSurfaceView extends SurfaceView implements SurfaceHolder.Callb
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         canvas.drawColor(Color.WHITE);
-        canvas.drawCircle(mCirclePosition.x, mCirclePosition.y,200, mPaint);
+
+        canvas.drawArc(mOval,0, mSpinner.getAngle(),true, mPaint);
         //Make the drawing of the thing
     }
 
@@ -75,10 +82,10 @@ public class FidgiSurfaceView extends SurfaceView implements SurfaceHolder.Callb
         switch(action){
             case MotionEvent.ACTION_DOWN:
             case MotionEvent.ACTION_POINTER_DOWN:
-                mCirclePosition.set(event.getX(), event.getY());
+                mSpinner.setAngle(AppConstants.getAngle(mSpinner.getCenter(),event.getX(), event.getY()));
                 break;
             case MotionEvent.ACTION_MOVE:
-                mCirclePosition.set(event.getX(), event.getY());
+                mSpinner.setAngle(AppConstants.getAngle(mSpinner.getCenter(),event.getX(), event.getY()));
                 break;
         }
         return true;

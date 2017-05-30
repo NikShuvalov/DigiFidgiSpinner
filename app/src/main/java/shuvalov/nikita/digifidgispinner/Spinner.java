@@ -60,8 +60,17 @@ public class Spinner {
                 break;
         }
     }
-    private void setAngle(float angle){
+
+    public void setAngle(float angle){
         mAngle = angle;
+    }
+
+    public float getAngle() {
+        return mAngle;
+    }
+
+    public PointF getCenter(){
+        return mCenter;
     }
 
 
