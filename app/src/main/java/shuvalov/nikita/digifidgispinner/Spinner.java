@@ -72,7 +72,9 @@ public class Spinner {
         }
         mLastTouch = touchEventPoint;
         float horizontalTorque = (elapsedTime * deltaX)/10000;
-        mRpm += horizontalTorque;
+        mRpm += touchEventPoint.y > mCenter.y + mBearingRadius ?
+                horizontalTorque :
+                -horizontalTorque;
     }
 
     private void applyFriction(long elapsedTime){

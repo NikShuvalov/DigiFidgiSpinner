@@ -6,6 +6,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Path;
 import android.graphics.PointF;
 import android.graphics.Rect;
 import android.graphics.RectF;
@@ -26,12 +27,12 @@ import static android.content.ContentValues.TAG;
 public class FidgiSurfaceView extends SurfaceView implements SurfaceHolder.Callback {
     private GraphicThread mGraphicThread;
     private Paint mPaint, mPaint2;
+    private Paint mBodyPaint;
     private Paint mDebugTextPaint;
     private PointF mCirclePosition;
     private Spinner mSpinner;
     private long mStartActionTime;
     private SpeedListener mSpeedListener;
-    private long mLastUpdate;
 
 
 
@@ -39,18 +40,18 @@ public class FidgiSurfaceView extends SurfaceView implements SurfaceHolder.Callb
         super(context);
         SurfaceHolder surfaceHolder = getHolder();
         surfaceHolder.addCallback(this);
-        mPaint = new Paint();
-        mPaint.setColor(Color.RED);
-        mPaint2 = new Paint();
-        mPaint2.setColor(Color.BLACK);
 
         mDebugTextPaint = new Paint();
         mDebugTextPaint.setColor(Color.GREEN);
         mDebugTextPaint.setTextSize(30);
 
+        mPaint = new Paint();
+        mPaint.setColor(Color.RED);
+
+        mPaint2 = new Paint();
+        mPaint2.setColor(Color.BLACK);
 
         mSpeedListener = speedListener;
-        mLastUpdate = SystemClock.elapsedRealtime();
     }
 
 
@@ -63,11 +64,18 @@ public class FidgiSurfaceView extends SurfaceView implements SurfaceHolder.Callb
 
         float radius = screenBounds.width()/2;
         radius = radius - radius/2.5f;
-        mSpinner = new Spinner(mCirclePosition,radius, 3);
+        mSpinner = new Spinner(mCirclePosition,radius, 3);//At 8 corners it beings to overlap.
+
+
+        mBodyPaint = new Paint();
+        mBodyPaint.setColor(Color.argb(255,100,100,100));
+        mBodyPaint.setStrokeWidth(mSpinner.getBearingRadius()*1.5f);
+        mBodyPaint.setStyle(Paint.Style.FILL);
 
         if(mGraphicThread!=null){return;}
         mGraphicThread = new GraphicThread(surfaceHolder,this);
         mGraphicThread.start();
+
     }
 
     @Override
@@ -104,9 +112,10 @@ public class FidgiSurfaceView extends SurfaceView implements SurfaceHolder.Callb
         PointF spinnerCenter = mSpinner.getCenter();
 
         //Draw connectors
-//        for(int i =0; i < bearingCenters.length; i++) {
-//            canvas.drawRect();
-//        }
+        for(int i =0; i < bearingCenters.length; i++) {
+            PointF bearingCenter = bearingCenters[i];
+            canvas.drawLine(spinnerCenter.x, spinnerCenter.y, bearingCenter.x, bearingCenter.y, mBodyPaint);
+        }
 
         //Draw Bearings
         for(int i =0; i< bearingCenters.length; i++){
@@ -126,8 +135,6 @@ public class FidgiSurfaceView extends SurfaceView implements SurfaceHolder.Callb
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        int index = MotionEventCompat.getActionIndex(event);
-        int id = event.getPointerId(index);
         int action = MotionEventCompat.getActionMasked(event);
         PointF actionEventTouch = new PointF();
         switch(action){
