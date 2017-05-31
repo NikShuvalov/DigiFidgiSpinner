@@ -7,12 +7,16 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PointF;
+import android.graphics.Rect;
 import android.graphics.RectF;
 import android.os.SystemClock;
 import android.support.v4.view.MotionEventCompat;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+
+import static android.content.ContentValues.TAG;
 
 
 /**
@@ -44,9 +48,7 @@ public class FidgiSurfaceView extends SurfaceView implements SurfaceHolder.Callb
         mDebugTextPaint.setColor(Color.GREEN);
         mDebugTextPaint.setTextSize(30);
 
-        mCirclePosition = new PointF(500,500);
-        float radius = 250;
-        mSpinner = new Spinner(mCirclePosition,radius, 3);
+
         mSpeedListener = speedListener;
         mLastUpdate = SystemClock.elapsedRealtime();
     }
@@ -55,10 +57,17 @@ public class FidgiSurfaceView extends SurfaceView implements SurfaceHolder.Callb
 
     @Override
     public void surfaceCreated(SurfaceHolder surfaceHolder) {
+        Rect screenBounds = new Rect();
+        getHitRect(screenBounds);
+        mCirclePosition = new PointF(screenBounds.centerX(),screenBounds.centerY());
+
+        float radius = screenBounds.width()/2;
+        radius = radius - radius/2.5f;
+        mSpinner = new Spinner(mCirclePosition,radius, 3);
+
         if(mGraphicThread!=null){return;}
         mGraphicThread = new GraphicThread(surfaceHolder,this);
         mGraphicThread.start();
-        //Draw the FidgetSpinner and start the engine I guess
     }
 
     @Override
@@ -79,7 +88,7 @@ public class FidgiSurfaceView extends SurfaceView implements SurfaceHolder.Callb
         drawSpinner(canvas);
         debugText(canvas);
         float rpm = mSpinner.getRpm();
-        if(rpm>1.5f){
+        if(Math.abs(rpm)>1.5f){
             mSpeedListener.onCriticalSpeed(rpm);
         }
         //Make the drawing of the thing

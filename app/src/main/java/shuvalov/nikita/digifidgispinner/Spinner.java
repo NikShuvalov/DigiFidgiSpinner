@@ -28,7 +28,7 @@ public class Spinner {
     public Spinner(PointF center, float radius, int corners) {
         mCenter = center;
         mRadius = radius;
-        mRpm = 8;
+        mRpm = 0;
         mMasterAngle = 0;
         mLastUpdateMillis = SystemClock.elapsedRealtime();
         mFriction = Friction.NORMAL;
