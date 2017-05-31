@@ -27,7 +27,18 @@ public class AppConstants {
         }else if (x> circleCenter.x && y<=circleCenter.y){
             angle = 360 + angle;
         }
-        Log.d(TAG, "getAngle: "+ angle);
-        return angle;
+        return 360 - angle;
+    }
+
+    public static PointF getCoords(PointF spinnerCenter, float degrees, float radius){
+        float radians = (float)Math.toRadians(degrees);
+
+        float x =(float) Math.sin(radians) * radius;
+        float y =(float) Math.cos(radians) * radius;
+
+        x+= spinnerCenter.x;
+        y+= spinnerCenter.y;
+
+        return new PointF(x,y);
     }
 }

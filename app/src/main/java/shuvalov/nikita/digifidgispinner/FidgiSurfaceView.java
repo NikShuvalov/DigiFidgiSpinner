@@ -1,19 +1,18 @@
 package shuvalov.nikita.digifidgispinner;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PointF;
-import android.graphics.PorterDuff;
 import android.graphics.RectF;
 import android.support.v4.view.MotionEventCompat;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
-import static android.content.ContentValues.TAG;
 
 /**
  * Created by NikitaShuvalov on 5/30/17.
@@ -21,7 +20,7 @@ import static android.content.ContentValues.TAG;
 
 public class FidgiSurfaceView extends SurfaceView implements SurfaceHolder.Callback {
     private GraphicThread mGraphicThread;
-    private Paint mPaint;
+    private Paint mPaint, mPaint2;
     private PointF mCirclePosition;
     private Spinner mSpinner;
     private RectF mOval;
@@ -34,9 +33,12 @@ public class FidgiSurfaceView extends SurfaceView implements SurfaceHolder.Callb
         surfaceHolder.addCallback(this);
         mPaint = new Paint();
         mPaint.setColor(Color.RED);
+        mPaint2 = new Paint();
+        mPaint2.setColor(Color.BLACK);
         mCirclePosition = new PointF(500,500);
-        mSpinner = new Spinner(null, mCirclePosition,200);
-        mOval = new RectF(mCirclePosition.x - 100, mCirclePosition.y -100, mCirclePosition.x+100, mCirclePosition.y+100);
+        float radius = 250;
+        mSpinner = new Spinner(mCirclePosition,radius, 3);
+        mOval = new RectF(mCirclePosition.x - radius, mCirclePosition.y -radius, mCirclePosition.x+radius, mCirclePosition.y+radius);
     }
 
 
@@ -63,10 +65,22 @@ public class FidgiSurfaceView extends SurfaceView implements SurfaceHolder.Callb
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         canvas.drawColor(Color.WHITE);
-
-        canvas.drawArc(mOval,0, mSpinner.getAngle(),true, mPaint);
+        drawSpinner(canvas);
         //Make the drawing of the thing
     }
+
+    private void drawSpinner(Canvas canvas){
+        PointF[] bearingCenters = mSpinner.getBearingCenters();
+        float bearingRadius = mSpinner.getBearingRadius();
+        PointF spinnerCenter = mSpinner.getCenter();
+        for(int i =0; i< bearingCenters.length; i++){
+            PointF bearingCenter = bearingCenters[i];
+            canvas.drawCircle(bearingCenter.x, bearingCenter.y, bearingRadius, mPaint);
+            canvas.drawCircle(bearingCenter.x, bearingCenter.y, bearingRadius/2, mPaint2);
+        }
+        canvas.drawCircle(spinnerCenter.x, spinnerCenter.y, mSpinner.getRadius()/4, mPaint2);
+    }
+
 
     public void stopGraphicThread(){
         if(mGraphicThread!=null && mGraphicThread.isAlive()){
