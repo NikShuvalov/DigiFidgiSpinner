@@ -2,10 +2,6 @@ package shuvalov.nikita.digifidgispinner;
 
 import android.graphics.PointF;
 import android.os.SystemClock;
-import android.util.Log;
-
-import static android.content.ContentValues.TAG;
-
 
 /**
  * Created by NikitaShuvalov on 5/30/17.
@@ -70,11 +66,19 @@ public class Spinner {
             deltaX = touchEventPoint.x - mLastTouch.x;
             deltaY = touchEventPoint.y - mLastTouch.y;
         }
-        mLastTouch = touchEventPoint;
-        float horizontalTorque = (elapsedTime * deltaX)/10000;
-        mRpm += touchEventPoint.y > mCenter.y + mBearingRadius ?
-                horizontalTorque :
-                -horizontalTorque;
+        if(Math.abs(deltaX)> Math.abs(deltaY)) {
+            mLastTouch = touchEventPoint;
+            float horizontalTorque = (elapsedTime * deltaX) / 10000;
+            mRpm += touchEventPoint.y > mCenter.y + mBearingRadius ?
+                    horizontalTorque :
+                    -horizontalTorque;
+        }else{
+            mLastTouch = touchEventPoint;
+            float verticalTorque = (elapsedTime * deltaY) /10000;
+            mRpm += touchEventPoint.x > mCenter.x + mBearingRadius ?
+                    -verticalTorque:
+                    verticalTorque;
+        }
     }
 
     private void applyFriction(long elapsedTime){
@@ -126,11 +130,6 @@ public class Spinner {
     public void releaseLastTouch(){
         mLastTouch = null;
     }
-
-    public enum ClickArea{
-        CENTER, BEARING_CORNER, BODY_BRIDGE
-    }
-
 
     public boolean centerClicked(PointF clickedPoint){
         float xDistance = Math.abs(mCenter.x - clickedPoint.x);

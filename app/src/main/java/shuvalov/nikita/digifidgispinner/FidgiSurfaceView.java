@@ -1,18 +1,13 @@
 package shuvalov.nikita.digifidgispinner;
 
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.Path;
 import android.graphics.PointF;
 import android.graphics.Rect;
-import android.graphics.RectF;
 import android.os.SystemClock;
 import android.support.v4.view.MotionEventCompat;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -157,9 +152,8 @@ public class FidgiSurfaceView extends SurfaceView implements SurfaceHolder.Callb
                     mSpinner.addTorque(mStartActionTime, endActionTime, actionEventTouch);
                     mStartActionTime = endActionTime;
                     break;
-                }else{
-                    mSpinner.setAngle(AppConstants.getAngle(mSpinner.getCenter(),event.getX(), event.getY()));
                 }
+                mSpinner.setAngle(AppConstants.getAngle(mSpinner.getCenter(),event.getX(), event.getY()));
                 break;
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_POINTER_UP:
