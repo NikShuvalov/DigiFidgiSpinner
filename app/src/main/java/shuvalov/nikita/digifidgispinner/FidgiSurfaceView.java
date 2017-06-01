@@ -33,7 +33,7 @@ public class FidgiSurfaceView extends SurfaceView implements SurfaceHolder.Callb
     private Spinner mSpinner;
     private long mStartActionTime;
     private SpeedListener mSpeedListener;
-
+    private boolean mSpinnerHeld;
 
 
     public FidgiSurfaceView(Context context, SpeedListener speedListener) {
@@ -141,17 +141,29 @@ public class FidgiSurfaceView extends SurfaceView implements SurfaceHolder.Callb
             case MotionEvent.ACTION_DOWN:
             case MotionEvent.ACTION_POINTER_DOWN:
                 mStartActionTime = SystemClock.elapsedRealtime();
-                //Check if user clicked ON the spinner if so just follow their finger.
-//                mSpinner.setAngle(AppConstants.getAngle(mSpinner.getCenter(),event.getX(), event.getY()));
+                actionEventTouch.set(event.getX(), event.getY());
+                if(mSpinner.centerClicked(actionEventTouch)){
+                    mSpinnerHeld = false;
+                }else if (mSpinner.bodyClicked(actionEventTouch)){
+                    mSpinner.stop();
+                    mSpinner.setAngle(AppConstants.getAngle(mSpinner.getCenter(),event.getX(), event.getY()));
+                    mSpinnerHeld=true;
+                }
                 break;
             case MotionEvent.ACTION_MOVE:
-                actionEventTouch.set(event.getX(), event.getY());
-                long endActionTime = SystemClock.elapsedRealtime();
-                mSpinner.addTorque(mStartActionTime, endActionTime, actionEventTouch);
-                mStartActionTime = endActionTime;
+                if(!mSpinnerHeld) {
+                    actionEventTouch.set(event.getX(), event.getY());
+                    long endActionTime = SystemClock.elapsedRealtime();
+                    mSpinner.addTorque(mStartActionTime, endActionTime, actionEventTouch);
+                    mStartActionTime = endActionTime;
+                    break;
+                }else{
+                    mSpinner.setAngle(AppConstants.getAngle(mSpinner.getCenter(),event.getX(), event.getY()));
+                }
                 break;
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_POINTER_UP:
+                mSpinnerHeld= false;
                 mSpinner.releaseLastTouch();
                 break;
         }

@@ -126,4 +126,55 @@ public class Spinner {
     public void releaseLastTouch(){
         mLastTouch = null;
     }
+
+    public enum ClickArea{
+        CENTER, BEARING_CORNER, BODY_BRIDGE
+    }
+
+
+    public boolean centerClicked(PointF clickedPoint){
+        float xDistance = Math.abs(mCenter.x - clickedPoint.x);
+        float yDistance = Math.abs(mCenter.y - clickedPoint.y);
+        return Math.sqrt((xDistance * xDistance) + (yDistance*yDistance)) <= mBearingRadius;
+    }
+
+    public boolean bodyClicked(PointF clickedPoint){
+        float xDistance = Math.abs(mCenter.x - clickedPoint.x); //xVector distance from center
+        float yDistance = Math.abs(mCenter.y - clickedPoint.y); //yVector distance from center
+        float totalDistance = (float)Math.sqrt((xDistance * xDistance) + (yDistance*yDistance));
+        if(totalDistance >= mRadius + mBearingRadius){  //Crudely check hitRect, this makes the hit rect a little longer/wider than it should be near the edges.
+            return false;
+        }
+        float angle = AppConstants.getAngle(mCenter, clickedPoint.x, clickedPoint.y); //Angle of the touch relative to the spinner center.
+        float marginAngle = (float)Math.toDegrees(mBearingRadius/mRadius); //Calculates the angle produced by the arc.
+        //Find the angle with the least distance to the click point
+
+        float[] bearingAngles = new float[mBearingCenters.length];
+        for(int i = 0; i< mBearingCenters.length; i++){
+            PointF centerPoint = mBearingCenters[i];
+            bearingAngles[i] = AppConstants.getAngle(mCenter, centerPoint.x, centerPoint.y);
+        }
+
+        float closestAngle = 1000;
+        float smallestAngleDifference = 360;
+        for (float bearingAngle : bearingAngles) {
+            float angleDifference = Math.abs(bearingAngle - angle);
+            if (smallestAngleDifference > angleDifference) {
+                smallestAngleDifference = angleDifference;
+                closestAngle = bearingAngle;
+            }
+        }
+
+        float topRange = (marginAngle/2 + angle) + 360; //Ranges become less confusing if we take negative numbers out of the equation
+        float botRange = (angle - marginAngle/2) + 360;
+
+        if (topRange> closestAngle + 360 && closestAngle +360 > botRange){ //User clicked within the arc range.
+            return true;
+        }
+        return false;
+    }
+
+    public void stop(){
+        mRpm = 0;
+    }
 }
