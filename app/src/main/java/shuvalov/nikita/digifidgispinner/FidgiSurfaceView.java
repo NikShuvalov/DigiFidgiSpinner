@@ -12,8 +12,6 @@ import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
-import static android.content.ContentValues.TAG;
-
 
 /**
  * Created by NikitaShuvalov on 5/30/17.
@@ -25,14 +23,20 @@ public class FidgiSurfaceView extends SurfaceView implements SurfaceHolder.Callb
     private Paint mBodyPaint;
     private Paint mDebugTextPaint;
     private PointF mCirclePosition;
-    private Spinner mSpinner;
     private long mStartActionTime;
-    private SpeedListener mSpeedListener;
-    private boolean mSpinnerHeld;
+    private DigiFidgiWidgiCallback mDigiFidgiWidgiCallback;
+    private boolean mSpinnerHeld, mHoveringOption;
+    private Paint mIconButtonSelectedPaint, mIconButtonUnselectedPaint, mIconOutlinePaint;
+    private Rect[] mOptionsRects;
+    private int mOptionSelected;
+    private int mColorSelected, mColorUnselected;
 
-
-    public FidgiSurfaceView(Context context, SpeedListener speedListener) {
+    public FidgiSurfaceView(Context context, DigiFidgiWidgiCallback digiFidgiWidgiCallback) {
         super(context);
+        mOptionSelected = -1;
+        mHoveringOption = false;
+        mSpinnerHeld = false;
+
         SurfaceHolder surfaceHolder = getHolder();
         surfaceHolder.addCallback(this);
 
@@ -46,7 +50,7 @@ public class FidgiSurfaceView extends SurfaceView implements SurfaceHolder.Callb
         mPaint2 = new Paint();
         mPaint2.setColor(Color.BLACK);
 
-        mSpeedListener = speedListener;
+        mDigiFidgiWidgiCallback = digiFidgiWidgiCallback;
     }
 
 
@@ -57,20 +61,39 @@ public class FidgiSurfaceView extends SurfaceView implements SurfaceHolder.Callb
         getHitRect(screenBounds);
         mCirclePosition = new PointF(screenBounds.centerX(),screenBounds.centerY());
 
+        float width = screenBounds.width();
+        mOptionsRects = new Rect[]{
+                new Rect((int)(width*.8), 16, (int)(width - 16), 100),
+                new Rect((int)(width * .6), 16, (int)(width*.8 - 16), 100)};
         float radius = screenBounds.width()/2;
         radius = radius - radius/2.5f;
-        mSpinner = new Spinner(mCirclePosition,radius, 3);//At 8 corners it beings to overlap.
+        Spinner spinner;
+        SpinnerHandler spinnerHandler = SpinnerHandler.getInstance();
+        if((spinner = spinnerHandler.getSpinner()) == null){
+            spinnerHandler.setSpinner(spinner = new Spinner(mCirclePosition,radius, 3));
+        }
+
+        mColorUnselected = Color.argb(255, 200, 255, 255);
+        mColorSelected = Color.argb(255, 125, 200, 200);
 
 
         mBodyPaint = new Paint();
         mBodyPaint.setColor(Color.argb(255,100,100,100));
-        mBodyPaint.setStrokeWidth(mSpinner.getBearingRadius()*1.5f);
+        mBodyPaint.setStrokeWidth(spinner.getBearingRadius()*1.5f);
         mBodyPaint.setStyle(Paint.Style.FILL);
 
+        mIconButtonUnselectedPaint = new Paint();
+        mIconButtonUnselectedPaint.setColor(mColorUnselected);
+        mIconButtonSelectedPaint = new Paint();
+        mIconButtonSelectedPaint.setColor(mColorSelected);
+
+        mIconOutlinePaint = new Paint();
+        mIconOutlinePaint.setColor(mColorSelected);
+        mIconOutlinePaint.setStyle(Paint.Style.STROKE);
+        mIconOutlinePaint.setStrokeWidth(3f);
         if(mGraphicThread!=null){return;}
         mGraphicThread = new GraphicThread(surfaceHolder,this);
         mGraphicThread.start();
-
     }
 
     @Override
@@ -86,25 +109,37 @@ public class FidgiSurfaceView extends SurfaceView implements SurfaceHolder.Callb
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        mSpinner.spin(SystemClock.elapsedRealtime());
+        Spinner spinner = SpinnerHandler.getInstance().getSpinner();
+        spinner.spin(SystemClock.elapsedRealtime());
         canvas.drawColor(Color.WHITE);
+
+        for(int i =0; i< mOptionsRects.length; i++){
+            Rect r = mOptionsRects[i];
+            if(mHoveringOption) {
+                canvas.drawRect(r, i == mOptionSelected ? mIconButtonSelectedPaint : mIconButtonUnselectedPaint);
+            }else{
+                canvas.drawRect(r, mIconButtonUnselectedPaint);
+            }
+            canvas.drawRect(r, mIconOutlinePaint);
+        }
+
         drawSpinner(canvas);
         debugText(canvas);
-        float rpm = mSpinner.getRpm();
+        float rpm = spinner.getRpm();
         if(Math.abs(rpm)>1.5f){
-            mSpeedListener.onCriticalSpeed(rpm);
+            mDigiFidgiWidgiCallback.onCriticalSpeed(rpm);
         }
-        //Make the drawing of the thing
     }
 
     private void debugText(Canvas canvas){
-        canvas.drawText(String.valueOf("Rpm :" + mSpinner.getRpm()), 50, 30, mDebugTextPaint);
+        canvas.drawText(String.valueOf("Rpm :" + SpinnerHandler.getInstance().getSpinner().getRpm()), 50, 30, mDebugTextPaint);
     }
 
     private void drawSpinner(Canvas canvas){
-        PointF[] bearingCenters = mSpinner.getBearingCenters();
-        float bearingRadius = mSpinner.getBearingRadius();
-        PointF spinnerCenter = mSpinner.getCenter();
+        Spinner spinner = SpinnerHandler.getInstance().getSpinner();
+        PointF[] bearingCenters = spinner.getBearingCenters();
+        float bearingRadius = spinner.getBearingRadius();
+        PointF spinnerCenter = spinner.getCenter();
 
         //Draw connectors
         for(int i =0; i < bearingCenters.length; i++) {
@@ -118,7 +153,7 @@ public class FidgiSurfaceView extends SurfaceView implements SurfaceHolder.Callb
             canvas.drawCircle(bearingCenter.x, bearingCenter.y, bearingRadius, mPaint);
             canvas.drawCircle(bearingCenter.x, bearingCenter.y, bearingRadius/2, mPaint2);
         }
-        canvas.drawCircle(spinnerCenter.x, spinnerCenter.y, mSpinner.getRadius()/4, mPaint2);
+        canvas.drawCircle(spinnerCenter.x, spinnerCenter.y, SpinnerHandler.getInstance().getSpinner().getRadius()/4, mPaint2);
     }
 
 
@@ -132,39 +167,73 @@ public class FidgiSurfaceView extends SurfaceView implements SurfaceHolder.Callb
     public boolean onTouchEvent(MotionEvent event) {
         int action = MotionEventCompat.getActionMasked(event);
         PointF actionEventTouch = new PointF();
-        switch(action){
+        Spinner spinner = SpinnerHandler.getInstance().getSpinner();
+        switch(action) {
             case MotionEvent.ACTION_DOWN:
             case MotionEvent.ACTION_POINTER_DOWN:
                 mStartActionTime = SystemClock.elapsedRealtime();
                 actionEventTouch.set(event.getX(), event.getY());
-                if(mSpinner.centerClicked(actionEventTouch)){
+                for (int i = 0; i < mOptionsRects.length; i++){
+                    Rect r = mOptionsRects[i];
+                    if (mHoveringOption = r.contains((int) actionEventTouch.x, (int) actionEventTouch.y)) {
+                        mOptionSelected = i;
+                        break;
+                    }
+                }
+                if(mOptionSelected>-1){
+                    mSpinnerHeld= false;
+                    break;
+                }
+                if (spinner.centerClicked(actionEventTouch)) {
                     mSpinnerHeld = false;
-                }else if (mSpinner.bodyClicked(actionEventTouch)){
-                    mSpinner.stop();
-                    mSpinner.setAngle(AppConstants.getAngle(mSpinner.getCenter(),event.getX(), event.getY()));
-                    mSpinnerHeld=true;
+                } else if (spinner.bodyClicked(actionEventTouch)) {
+                    spinner.stop();
+                    spinner.setAngle(AppConstants.getAngle(spinner.getCenter(), event.getX(), event.getY()));
+                    mSpinnerHeld = true;
                 }
                 break;
             case MotionEvent.ACTION_MOVE:
-                if(!mSpinnerHeld) {
-                    actionEventTouch.set(event.getX(), event.getY());
-                    long endActionTime = SystemClock.elapsedRealtime();
-                    mSpinner.addTorque(mStartActionTime, endActionTime, actionEventTouch);
-                    mStartActionTime = endActionTime;
-                    break;
+                if (!mSpinnerHeld) {
+                    if (mOptionSelected>-1) {
+                        Rect r = mOptionsRects[mOptionSelected];
+                        if (r.contains((int) event.getX(), (int) event.getY())) {
+                            mHoveringOption = true;
+                            break;
+                        }else{
+                            mHoveringOption = false;
+                            break;
+                        }
+                    } else {
+                        mHoveringOption = false;
+                        actionEventTouch.set(event.getX(), event.getY());
+                        long endActionTime = SystemClock.elapsedRealtime();
+                        spinner.addTorque(mStartActionTime, endActionTime, actionEventTouch);
+                        mStartActionTime = endActionTime;
+                        break;
+                    }
+                }else {
+                    spinner.setAngle(AppConstants.getAngle(spinner.getCenter(), event.getX(), event.getY()));
                 }
-                mSpinner.setAngle(AppConstants.getAngle(mSpinner.getCenter(),event.getX(), event.getY()));
                 break;
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_POINTER_UP:
+                if(mOptionSelected>-1) {
+                    Rect r = mOptionsRects[mOptionSelected];
+                    if(r.contains((int)event.getX(), (int)event.getY()) && mOptionSelected>-1) {
+                        mDigiFidgiWidgiCallback.onOptionSelected(mOptionSelected);
+                    }
+                    mOptionSelected = -1;
+                    break;
+                }
                 mSpinnerHeld= false;
-                mSpinner.releaseLastTouch();
+                spinner.releaseLastTouch();
                 break;
         }
         return true;
     }
 
-    interface SpeedListener{
+    interface DigiFidgiWidgiCallback{
         void onCriticalSpeed(float rpm);
+        void onOptionSelected(int i);
     }
 }

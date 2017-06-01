@@ -1,17 +1,13 @@
 package shuvalov.nikita.digifidgispinner;
 
-import android.media.AudioAttributes;
 import android.os.Vibrator;
-import android.support.design.widget.NavigationView;
-import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.FrameLayout;
 
-public class MainActivity extends AppCompatActivity implements FidgiSurfaceView.SpeedListener {
-    private FrameLayout mFrameLayout;
-    private DrawerLayout mDrawerLayout;
-    private NavigationView mNavigationView;
+public class MainActivity extends AppCompatActivity implements FidgiSurfaceView.DigiFidgiWidgiCallback {
+    private FrameLayout mMainFrame;
     private Vibrator mVibrator;
 
     @Override
@@ -25,16 +21,25 @@ public class MainActivity extends AppCompatActivity implements FidgiSurfaceView.
     }
 
     private void findViews(){
-        mFrameLayout = (FrameLayout) findViewById(R.id.fragment_container);
+        mMainFrame = (FrameLayout) findViewById(R.id.fragment_container);
     }
 
     private void setUpOverlay(){
         FidgiSurfaceView fidgiSurfaceView= new FidgiSurfaceView(this, this);
-        mFrameLayout.addView(fidgiSurfaceView);
+        mMainFrame.addView(fidgiSurfaceView);
     }
 
     @Override
     public void onCriticalSpeed(float rpm) {
         mVibrator.vibrate(50);
+    }
+
+    @Override
+    public void onOptionSelected(int i) {
+        if(i ==0){
+            SpinnerHandler.getInstance().getSpinner().addCorner();
+        }else{
+            SpinnerHandler.getInstance().getSpinner().removeCorner();
+        }
     }
 }

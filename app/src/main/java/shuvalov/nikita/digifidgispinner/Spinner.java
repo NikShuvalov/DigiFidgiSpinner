@@ -17,6 +17,8 @@ public class Spinner {
     private PointF[] mBearingCenters;
     private PointF mLastTouch;
 
+    public static final int MAX_CORNERS = 8;
+
     public enum Friction{
         SLIPPERY, NORMAL, STICKY, INFINITESPIN
     }
@@ -29,11 +31,11 @@ public class Spinner {
         mLastUpdateMillis = SystemClock.elapsedRealtime();
         mFriction = Friction.NORMAL;
         mBearingRadius = mRadius/2.5f;
-        mBearingCenters = new PointF[corners];
         placePoints(corners);
     }
 
     private void placePoints(int corners){
+        mBearingCenters = new PointF[corners];
         float angle = mMasterAngle;
         for(int i = 0 ; i< corners; i ++){
             mBearingCenters[i] = AppConstants.getCoords(mCenter, angle, mRadius);
@@ -175,5 +177,21 @@ public class Spinner {
 
     public void stop(){
         mRpm = 0;
+    }
+
+    public void addCorner(){
+        int corners = mBearingCenters.length+1;
+        if(corners>MAX_CORNERS){
+            corners = MAX_CORNERS;
+        }
+        placePoints(corners);
+    }
+
+    public void removeCorner(){
+        int corners = mBearingCenters.length-1;
+        if(corners<=0){
+            corners = 1;
+        }
+        placePoints(corners);
     }
 }
