@@ -17,7 +17,7 @@ public class Spinner {
     private PointF[] mBearingCenters;
     private PointF mLastTouch;
 
-    public static final int MAX_CORNERS = 8;
+    public static final int MAX_CORNERS = 7;
 
     public enum Friction{
         SLIPPERY, NORMAL, STICKY, INFINITESPIN
@@ -70,16 +70,37 @@ public class Spinner {
         }
         if(Math.abs(deltaX)> Math.abs(deltaY)) {
             mLastTouch = touchEventPoint;
-            float horizontalTorque = (elapsedTime * deltaX) / 10000;
-            mRpm += touchEventPoint.y > mCenter.y + mBearingRadius ?
-                    horizontalTorque :
-                    -horizontalTorque;
+            float horizontalTorque = touchEventPoint.y > mCenter.y + mBearingRadius ?
+                    (elapsedTime * deltaX) / 10000 :
+                    - (elapsedTime * deltaX) / 10000;
+            if(mRpm > 0 && horizontalTorque > 0){
+                mRpm += horizontalTorque > mRpm/10 ?
+                        horizontalTorque :
+                        0;
+            }else if (mRpm < 0 && horizontalTorque < 0){
+                mRpm += Math.abs(horizontalTorque) > Math.abs(mRpm/10) ?
+                        horizontalTorque:
+                        0;
+            }else{
+                mRpm += horizontalTorque;
+            }
         }else{
             mLastTouch = touchEventPoint;
-            float verticalTorque = (elapsedTime * deltaY) /10000;
-            mRpm += touchEventPoint.x > mCenter.x + mBearingRadius ?
-                    -verticalTorque:
-                    verticalTorque;
+            float verticalTorque =
+                    touchEventPoint.x > mCenter.x + mBearingRadius ?
+                            -(elapsedTime * deltaY) /10000:
+                            (elapsedTime * deltaY) /10000;
+            if(mRpm > 0 && verticalTorque > 0){
+                mRpm += verticalTorque > mRpm/10 ?
+                        verticalTorque :
+                        0;
+            }else if (mRpm < 0 && verticalTorque < 0){
+                mRpm += Math.abs(verticalTorque) > Math.abs(mRpm/10) ?
+                         verticalTorque:
+                        0;
+            }else{
+                mRpm += verticalTorque;
+            }
         }
     }
 
@@ -189,8 +210,8 @@ public class Spinner {
 
     public void removeCorner(){
         int corners = mBearingCenters.length-1;
-        if(corners<=0){
-            corners = 1;
+        if(corners<=1){
+            corners = 2;
         }
         placePoints(corners);
     }
