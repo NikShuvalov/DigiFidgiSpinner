@@ -1,4 +1,4 @@
-package shuvalov.nikita.digifidgispinner;
+package shuvalov.nikita.digifidgispinner.helicopter_game;
 
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -8,6 +8,9 @@ import android.graphics.Rect;
 import android.os.SystemClock;
 
 import java.util.Random;
+
+import shuvalov.nikita.digifidgispinner.SpinnerHandler;
+import shuvalov.nikita.digifidgispinner.helicopter_game.Helicopter;
 
 /**
  * Created by NikitaShuvalov on 6/6/17.
@@ -29,23 +32,26 @@ public class GameEngine  {
         EASY, NORMAL, HARD
     }
 
-    public GameEngine(Helicopter helicopter, int onScreenSections, Difficulty difficulty, Rect screenBounds){
+    public GameEngine(Helicopter helicopter, Difficulty difficulty){
         mHelicopter = helicopter;
-        mMapHeights = new int[onScreenSections + 2]; //Add 1 offscreen in each direction
-        mItemSpawn = new char[onScreenSections + 2]; //Add 1 offscreen in each direction
         mDifficulty = difficulty;
-        mScreenBounds = screenBounds;
-        generateStartMap();
-        createPaint();
-        mSectionLength = screenBounds.width()/onScreenSections;
-        mStartPoint = -mSectionLength;
-        mReloadPoint = -mSectionLength * onScreenSections/2;
-        mLastUpdate = SystemClock.elapsedRealtime();
     }
 
     private void createPaint(){
         mTerrainPaint = new Paint();
         mTerrainPaint.setColor(Color.argb(255, 237, 178, 90));
+    }
+
+    public void setScreen(Rect screenBounds,  int onScreenSections){
+        mScreenBounds = screenBounds;
+        mMapHeights = new int[onScreenSections * 2]; //Add 1 offscreen in each direction
+        mItemSpawn = new char[onScreenSections * 2]; //Add 1 offscreen in each direction
+        mSectionLength = screenBounds.width()/onScreenSections;
+        mStartPoint = -mSectionLength;
+        mReloadPoint = -mSectionLength * onScreenSections/5;
+        mLastUpdate = SystemClock.elapsedRealtime();
+        generateStartMap();
+        createPaint();
     }
 
     private void generateStartMap(){
@@ -55,6 +61,13 @@ public class GameEngine  {
             mMapHeights[i] = mScreenBounds.height() - rng.nextInt(terrainMaxHeight);
             mItemSpawn[i] = placeItem();
         }
+        spawnHeli();
+    }
+
+    private void spawnHeli(){
+        float x=  mScreenBounds.centerX();
+        PointF point = new PointF(x,getTerrainHeightAtX(x));
+        mHelicopter.setLocation(point);
     }
 
     private void loadNextSection(){
@@ -99,8 +112,8 @@ public class GameEngine  {
     private void refocus(){
         mStartPoint += mSectionLength;
         PointF copterPos = mHelicopter.getLocation();
-        copterPos.offset(mSectionLength, 0);
-        mHelicopter.setLocation(copterPos);
+//        copterPos.offset(mSectionLength, 0);
+//        mHelicopter.setLocation(copterPos);
     }
 
     public void run(){
@@ -108,7 +121,6 @@ public class GameEngine  {
         long elapsedTime = currentTime -mLastUpdate;
         if(elapsedTime > REFRESH_RATE){
             moveTheChopper(elapsedTime);
-            //Other run logic
             mLastUpdate = currentTime;
         }
 
@@ -117,22 +129,21 @@ public class GameEngine  {
         PointF chopperLoci = mHelicopter.getLocation();
         float horizontalForce = mHelicopter.getHorizontalVelocity();
         float distanceX = horizontalForce * elapsedTime;
-
         float weight = mHelicopter.getWeight();
         float gravityForce = weight * 10;
-        float rpm =SpinnerHandler.getInstance().getSpinner().getRpm();
-        float liftForce = rpm *10;
-        float netVerticalForce = liftForce -gravityForce;
-        float distanceY = netVerticalForce * elapsedTime;
-
-        chopperLoci.offset(distanceX, distanceY);
-        mStartPoint-= distanceX;
+        float rpm = SpinnerHandler.getInstance().getSpinner().getRpm();
+//        float liftForce = rpm *10;
+//        float netVerticalForce = liftForce -gravityForce;
+//        float distanceY = netVerticalForce * elapsedTime;
+//        chopperLoci.offset(distanceX, distanceY);
+//        chopperLoci.offset(distanceX, 0);
+        mStartPoint-= distanceX;//Should only move chopper if we've reached the left end of screen.
         int terrainHeight = getTerrainHeightAtX(getHelicopterRelativeX());
         if(mHelicopter.getLocation().y >= terrainHeight){
-            //ToDo: Add horizontal force to damage as well;
-            int netForce = (int)(netVerticalForce + horizontalForce);
-            helicopterLanded(netForce);
+//            int netForce = (int)(netVerticalForce + horizontalForce);
+//            helicopterLanded(netForce);
         }
+        loadNextSectionsIfNecessary();
     }
 
     private void helicopterLanded(int netForce){
@@ -141,7 +152,8 @@ public class GameEngine  {
         //Do whatever else should be done here. Stop moving the helicopter and shit.
 
     }
-    private Path drawTerrainPath(){
+
+    public Path getTerrainPath(){
         Path terrainPath = new Path();
 
         terrainPath.moveTo(mStartPoint , mScreenBounds.height());
@@ -174,5 +186,9 @@ public class GameEngine  {
 
     public Paint getTerrainPaint() {
         return mTerrainPaint;
+    }
+
+    public Helicopter getHelicopter() {
+        return mHelicopter;
     }
 }

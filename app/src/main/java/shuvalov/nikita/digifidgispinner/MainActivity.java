@@ -1,24 +1,31 @@
 package shuvalov.nikita.digifidgispinner;
 
+import android.content.Intent;
 import android.os.Vibrator;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.widget.FrameLayout;
-import android.widget.Toast;
+
+import shuvalov.nikita.digifidgispinner.helicopter_game.HelicopterActivity;
 
 public class MainActivity extends AppCompatActivity implements FidgiSurfaceView.DigiFidgiWidgiCallback {
     private FrameLayout mMainFrame;
     private Vibrator mVibrator;
+    private FidgiSurfaceView mFidgiSurfaceView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
         findViews();
-        setUpOverlay();
         mVibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
+
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        setUpOverlay();
     }
 
     private void findViews(){
@@ -26,8 +33,8 @@ public class MainActivity extends AppCompatActivity implements FidgiSurfaceView.
     }
 
     private void setUpOverlay(){
-        FidgiSurfaceView fidgiSurfaceView= new FidgiSurfaceView(this, this);
-        mMainFrame.addView(fidgiSurfaceView);
+        mFidgiSurfaceView= new FidgiSurfaceView(this, this);
+        mMainFrame.addView(mFidgiSurfaceView);
     }
 
     @Override
@@ -45,8 +52,16 @@ public class MainActivity extends AppCompatActivity implements FidgiSurfaceView.
                 SpinnerHandler.getInstance().getSpinner().removeCorner();
                 break;
             case 2:
-                Toast.makeText(this, "Gonna play that shit", Toast.LENGTH_LONG).show();
+                mFidgiSurfaceView.stopGraphicThread();
+                Intent heliIntent = new Intent(this, HelicopterActivity.class);
+                startActivity(heliIntent);
                 break;
         }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        mMainFrame.removeAllViews();
     }
 }

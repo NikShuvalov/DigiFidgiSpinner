@@ -1,4 +1,4 @@
-package shuvalov.nikita.digifidgispinner;
+package shuvalov.nikita.digifidgispinner.helicopter_game;
 
 import android.graphics.PointF;
 
