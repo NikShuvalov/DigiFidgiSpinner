@@ -25,7 +25,7 @@ public class FidgiSurfaceView extends SurfaceView implements SurfaceHolder.Callb
     private PointF mCirclePosition;
     private long mStartActionTime;
     private DigiFidgiWidgiCallback mDigiFidgiWidgiCallback;
-    private boolean mSpinnerHeld, mHoveringOption;
+    private boolean mHoveringOption;
     private Paint mIconButtonSelectedPaint, mIconButtonUnselectedPaint, mIconOutlinePaint;
     private Rect[] mOptionsRects;
     private int mOptionSelected;
@@ -35,7 +35,6 @@ public class FidgiSurfaceView extends SurfaceView implements SurfaceHolder.Callb
         super(context);
         mOptionSelected = -1;
         mHoveringOption = false;
-        mSpinnerHeld = false;
 
         SurfaceHolder surfaceHolder = getHolder();
         surfaceHolder.addCallback(this);
@@ -112,7 +111,16 @@ public class FidgiSurfaceView extends SurfaceView implements SurfaceHolder.Callb
         Spinner spinner = SpinnerHandler.getInstance().getSpinner();
         spinner.spin(SystemClock.elapsedRealtime());
         canvas.drawColor(Color.WHITE);
+        drawButtons(canvas);
+        drawSpinner(canvas);
+        debugText(canvas);
+        float rpm = spinner.getRpm();
+        if(Math.abs(rpm)>1.5f){
+            mDigiFidgiWidgiCallback.onCriticalSpeed(rpm);
+        }
+    }
 
+    private void drawButtons(Canvas canvas){
         for(int i =0; i< mOptionsRects.length; i++){
             Rect r = mOptionsRects[i];
             if(mHoveringOption) {
@@ -121,13 +129,6 @@ public class FidgiSurfaceView extends SurfaceView implements SurfaceHolder.Callb
                 canvas.drawRect(r, mIconButtonUnselectedPaint);
             }
             canvas.drawRect(r, mIconOutlinePaint);
-        }
-
-        drawSpinner(canvas);
-        debugText(canvas);
-        float rpm = spinner.getRpm();
-        if(Math.abs(rpm)>1.5f){
-            mDigiFidgiWidgiCallback.onCriticalSpeed(rpm);
         }
     }
 
@@ -156,7 +157,6 @@ public class FidgiSurfaceView extends SurfaceView implements SurfaceHolder.Callb
         canvas.drawCircle(spinnerCenter.x, spinnerCenter.y, SpinnerHandler.getInstance().getSpinner().getRadius()/4, mPaint2);
     }
 
-
     public void stopGraphicThread(){
         if(mGraphicThread!=null && mGraphicThread.isAlive()){
             mGraphicThread.stopThread();
@@ -180,20 +180,8 @@ public class FidgiSurfaceView extends SurfaceView implements SurfaceHolder.Callb
                         break;
                     }
                 }
-                if(mOptionSelected>-1){
-                    mSpinnerHeld= false;
-                    break;
-                }
-                if (spinner.centerClicked(actionEventTouch)) {
-                    mSpinnerHeld = false;
-                } else if (spinner.bodyClicked(actionEventTouch)) {
-                    spinner.stop();
-                    spinner.setAngle(AppConstants.getAngle(spinner.getCenter(), event.getX(), event.getY()));
-                    mSpinnerHeld = true;
-                }
                 break;
             case MotionEvent.ACTION_MOVE:
-                if (!mSpinnerHeld) {
                     if (mOptionSelected>-1) {
                         Rect r = mOptionsRects[mOptionSelected];
                         if (r.contains((int) event.getX(), (int) event.getY())) {
@@ -211,10 +199,6 @@ public class FidgiSurfaceView extends SurfaceView implements SurfaceHolder.Callb
                         mStartActionTime = endActionTime;
                         break;
                     }
-                }else {
-                    spinner.setAngle(AppConstants.getAngle(spinner.getCenter(), event.getX(), event.getY()));
-                }
-                break;
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_POINTER_UP:
                 if(mOptionSelected>-1) {
@@ -225,7 +209,6 @@ public class FidgiSurfaceView extends SurfaceView implements SurfaceHolder.Callb
                     mOptionSelected = -1;
                     break;
                 }
-                mSpinnerHeld= false;
                 spinner.releaseLastTouch();
                 break;
         }
