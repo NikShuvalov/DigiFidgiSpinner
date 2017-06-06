@@ -5,6 +5,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.FrameLayout;
+import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity implements FidgiSurfaceView.DigiFidgiWidgiCallback {
     private FrameLayout mMainFrame;
@@ -36,10 +37,16 @@ public class MainActivity extends AppCompatActivity implements FidgiSurfaceView.
 
     @Override
     public void onOptionSelected(int i) {
-        if(i ==0){
-            SpinnerHandler.getInstance().getSpinner().addCorner();
-        }else{
-            SpinnerHandler.getInstance().getSpinner().removeCorner();
+        switch(i){
+            case 0:
+                SpinnerHandler.getInstance().getSpinner().addCorner();
+                break;
+            case 1:
+                SpinnerHandler.getInstance().getSpinner().removeCorner();
+                break;
+            case 2:
+                Toast.makeText(this, "Gonna play that shit", Toast.LENGTH_LONG).show();
+                break;
         }
     }
 }

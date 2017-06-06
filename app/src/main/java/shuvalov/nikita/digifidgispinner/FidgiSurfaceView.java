@@ -63,9 +63,10 @@ public class FidgiSurfaceView extends SurfaceView implements SurfaceHolder.Callb
         float width = screenBounds.width();
         mOptionsRects = new Rect[]{
                 new Rect((int)(width*.8), 16, (int)(width - 16), 100),
-                new Rect((int)(width * .6), 16, (int)(width*.8 - 16), 100)};
-        float radius = screenBounds.width()/2;
-        radius = radius - radius/2.5f;
+                new Rect((int)(width *.6), 16, (int)(width*.8 - 16), 100),
+                new Rect((int)(width *.3), 16, (int)(width*.6 -16), 100)
+        };
+        float radius = screenBounds.width() * .3f;
         Spinner spinner;
         SpinnerHandler spinnerHandler = SpinnerHandler.getInstance();
         if((spinner = spinnerHandler.getSpinner()) == null){
@@ -74,7 +75,6 @@ public class FidgiSurfaceView extends SurfaceView implements SurfaceHolder.Callb
 
         mColorUnselected = Color.argb(255, 200, 255, 255);
         mColorSelected = Color.argb(255, 125, 200, 200);
-
 
         mBodyPaint = new Paint();
         mBodyPaint.setColor(Color.argb(255,100,100,100));
