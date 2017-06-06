@@ -29,7 +29,7 @@ public class GameSurfaceView extends SurfaceView implements SurfaceHolder.Callba
     private GameEngine mGameEngine;
     private int mSkyColor;
     private Paint mOutlinePaint;
-    private Paint mDebugPaint;
+    private Paint mDebugPaint, mBodyPaint, mPaint, mPaint2;
     private long mStartActionTime;
     private boolean mRightSideTouch, mLeftSideTouch;
     private Rect mScreenBounds;
@@ -43,6 +43,8 @@ public class GameSurfaceView extends SurfaceView implements SurfaceHolder.Callba
     }
 
     private void makePaint(){
+        Spinner spinner = SpinnerHandler.getInstance().getSpinner();
+
         mOutlinePaint = new Paint();
         mOutlinePaint.setColor(Color.BLACK);
         mOutlinePaint.setStyle(Paint.Style.STROKE);
@@ -53,6 +55,16 @@ public class GameSurfaceView extends SurfaceView implements SurfaceHolder.Callba
         mDebugPaint = new Paint();
         mDebugPaint.setColor(Color.RED);
 
+        mBodyPaint = new Paint();
+        mBodyPaint.setColor(Color.argb(255,100,100,100));
+        mBodyPaint.setStrokeWidth(spinner.getBearingRadius()*1.5f);
+        mBodyPaint.setStyle(Paint.Style.FILL);
+
+        mPaint = new Paint();
+        mPaint.setColor(Color.RED);
+
+        mPaint2 = new Paint();
+        mPaint2.setColor(Color.BLACK);
     }
     @Override
     public void surfaceCreated(SurfaceHolder surfaceHolder) {
@@ -121,12 +133,12 @@ public class GameSurfaceView extends SurfaceView implements SurfaceHolder.Callba
             case MotionEvent.ACTION_DOWN:
             case MotionEvent.ACTION_POINTER_DOWN:
                 mStartActionTime = SystemClock.elapsedRealtime();
-                actionEventTouch.set(event.getX(), event.getY());
                 if(event.getX() > mScreenBounds.width() * .9f){
                     mGameEngine.getHelicopter().adjustHorizontalSpeed(1);
-                    Log.d(TAG, "onTouchEvent:" + mGameEngine.getHelicopter().getHorizontalVelocity()); //Velocity can't exceed 9 or 10, the app ends up crashing.
                 }else if (event.getX() < mScreenBounds.width() * .1f){
                     mGameEngine.getHelicopter().adjustHorizontalSpeed(-1);
+                }else{
+                    actionEventTouch.set(event.getX(), event.getY());
                 }
                 break;
             case MotionEvent.ACTION_MOVE:
@@ -135,7 +147,6 @@ public class GameSurfaceView extends SurfaceView implements SurfaceHolder.Callba
                 spinner.addTorque(mStartActionTime, endActionTime, actionEventTouch);
                 mStartActionTime = endActionTime;
                 break;
-
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_POINTER_UP:
                 spinner.releaseLastTouch();
