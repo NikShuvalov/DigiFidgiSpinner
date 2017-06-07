@@ -289,6 +289,9 @@ public class Spinner {
         mCenter = center;
     }
 
+    public void setCenter(float cx, float cy){
+        mCenter.set(cx, cy);
+    }
     public float getCombinedRadius(){
         return mBearingRadius + mRadius;
     }

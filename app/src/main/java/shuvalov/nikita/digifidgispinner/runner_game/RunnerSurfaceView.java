@@ -66,11 +66,7 @@ public class RunnerSurfaceView extends SurfaceView implements SurfaceHolder.Call
     public void onDraw(Canvas canvas) {
         canvas.drawColor(mSkyColor);
         mRunnerEngine.getSpinner().spin(SystemClock.elapsedRealtime());
-        if(!mRunnerEngine.isGameOver()) {
-            mRunnerEngine.run();
-        }else{
-            //Do gameover animation
-        }
+        mRunnerEngine.run();
         mRunnerEngine.drawTerrain(canvas);
         float rpm = Math.abs(mRunnerEngine.getSpinner().getRpm());
         int remainingTime = (int)(mRunnerEngine.getTimeLeft()/1000);

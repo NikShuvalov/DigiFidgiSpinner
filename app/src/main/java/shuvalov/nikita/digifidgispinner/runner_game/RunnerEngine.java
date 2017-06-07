@@ -27,12 +27,12 @@ public class RunnerEngine {
     private Rect mScreenBounds;
     private ArrayList<Integer> mMapHeights;
     private boolean mIsJumping, mAirborne;
-    private boolean mGameOver;
+    private boolean mGameOver, mLastWords;
     private int mJumpDuration;
     private int mEndHeight; //Height of the last platform, going to be used to keep from creating platforms that are too high for the player to hop.
     private float mDistance;
     private long mTimeLeft;
-    private boolean mGameStarted;
+    private boolean mGameActive;
 
     private static final int MAX_HEIGHT_DIFF = 380; //Total jump height capable is 400. So I should allow a window.
     private static final float REFRESH_RATE = 30/1000;
@@ -123,59 +123,79 @@ public class RunnerEngine {
     public void run(){
         long currentTime = SystemClock.elapsedRealtime();
         long elapsedTime = currentTime - mLastUpdate;
-        if(elapsedTime > REFRESH_RATE && !mGameOver && mGameStarted){
-            mLastUpdate = currentTime;
-            float distanceCovered = mSpinner.getRpm() * elapsedTime/4;
-            mStartPoint+= distanceCovered;
-            mDistance+= distanceCovered;
-            mTimeLeft-= elapsedTime;
-            if(mTimeLeft<0){
-                mGameOver = true;
-                mSpinner.stop();
+        if(elapsedTime > REFRESH_RATE){
+            if(!mGameOver && mGameActive) {
+                mLastUpdate = currentTime;
+                float distanceCovered = mSpinner.getRpm() * elapsedTime / 4;
+                mStartPoint += distanceCovered;
+                mDistance += distanceCovered;
+                mTimeLeft -= elapsedTime;
+                if (mTimeLeft < 0) {
+                    mGameOver = true;
+                    mSpinner.stop();
+                }
+                loadNextSectionIfNecessary();
+                moveSpinner(mSpinner, elapsedTime);
             }
-            loadNextSectionIfNecessary();
-            moveSpinner(mSpinner, elapsedTime);
-        }else if (mGameOver){
-
-            //Start a gameover animation/sound or something. But how?
+            else if (mGameOver && mGameActive){
+                if(!mLastWords){
+                    mJumpDuration=0;
+                    mLastWords = true;
+                }
+                if(mJumpDuration< 20) {
+                    mSpinner.getCenter().offset(0, -20);
+                    mJumpDuration++;
+                } else{
+                    mSpinner.addYVelocity(GRAVITY*elapsedTime/10000);
+                    float deltaY = mSpinner.getYVelocity() * elapsedTime;
+                    float newYPosition = deltaY + mSpinner.getCenter().y;
+                    mSpinner.setCenter(mSectionLength, newYPosition);
+                    if(newYPosition> mSpinner.getCombinedRadius() + mScreenBounds.height()){
+                        mGameActive=false;
+                    }
+                }
+            }
         }
     }
 
     private void moveSpinner(Spinner spinner, long elapsedTime){
-        float  terrainHeight = getTerrainHeightAtX(getRelativePositionX());
-        if(terrainHeight == -1){
-            terrainHeight = mScreenBounds.height();
-        }
         PointF spinnerCenter = spinner.getCenter();
         float stableYCenter = getTerrainHeightAtX(getRelativePositionX()) - spinner.getCombinedRadius();
         if(stableYCenter < 0){
             stableYCenter = mScreenBounds.height() - spinner.getCombinedRadius();
         }
-        if(spinnerCenter.y>terrainHeight){ //FixMe: Adjust if this is too unforgiving;
-//            mGameOver = true;
-            mSpinner.stop();
-        }else if (terrainHeight == mScreenBounds.height() && spinnerCenter.y == stableYCenter){
-//            mGameOver = true;
-            mSpinner.stop();
-        }
-        if(mIsJumping && mJumpDuration < 20 && !mGameOver){
-            spinner.getCenter().offset(0,-20); //FixMe: This should change based on screensize, other screens will not work so well with this.
+        if(mGameOver = checkIfFellInPit(spinnerCenter, stableYCenter)){
+            spinner.stop();
             spinner.clearYVelocity();
-            mJumpDuration++;
-        }else if (stableYCenter>spinnerCenter.y && !mGameOver){
-            spinner.addYVelocity(GRAVITY * elapsedTime/1000);
-        }
-        float deltaY = spinner.getYVelocity() * elapsedTime;
-        float newYPosition = deltaY + spinnerCenter.y;
-        if(newYPosition >stableYCenter && !mGameOver){
-            spinner.getCenter().set(mSectionLength, stableYCenter);
-            mIsJumping= false;
-            mAirborne = false;
-            mJumpDuration = 0;
-        }else{
-            spinner.getCenter().set(mSectionLength, newYPosition);
+        }else {
+            if (mIsJumping && mJumpDuration < 20) {
+                spinner.getCenter().offset(0, -20); //FixMe: This should change based on screensize, other screens will not work so well with this.
+                spinner.clearYVelocity();
+                mJumpDuration++;
+            } else if (stableYCenter > spinnerCenter.y) {
+                spinner.addYVelocity(GRAVITY * elapsedTime / 1000);
+            }
+            float deltaY = spinner.getYVelocity() * elapsedTime;
+            float newYPosition = deltaY + spinnerCenter.y;
+            if (newYPosition > stableYCenter) {
+                spinner.getCenter().set(mSectionLength, stableYCenter);
+                mIsJumping = false;
+                mAirborne = false;
+                mJumpDuration = 0;
+            } else {
+                spinner.getCenter().set(mSectionLength, newYPosition);
+            }
         }
     }
+
+    private boolean checkIfFellInPit(PointF spinnerCenter, float stableYCenter){
+        float  terrainHeight = getTerrainHeightAtX(getRelativePositionX());
+        if(terrainHeight == -1){
+            terrainHeight = mScreenBounds.height();
+        }
+        return (spinnerCenter.y>terrainHeight || (terrainHeight == mScreenBounds.height() && spinnerCenter.y == stableYCenter)); //First half asks if the player is under the terrain surface, other asks if they've landed in a pit.
+    }
+
 
     public Paint getTerrainPaint() {
         return mTerrainPaint;
@@ -244,10 +264,16 @@ public class RunnerEngine {
     }
 
     public void startGame(){
-        if(!mGameStarted) {
+        if(!mGameActive) {
             mTimeLeft = 60000;
-            mGameStarted = true;
+            mGameActive = true;
             mLastUpdate = SystemClock.elapsedRealtime();
+            mLastWords = false;
+            mJumpDuration = 0;
+            mAirborne = false;
+            mIsJumping = false;
+            mSpinner.clearYVelocity();
+            mSpinner.stop();
         }
     }
 
