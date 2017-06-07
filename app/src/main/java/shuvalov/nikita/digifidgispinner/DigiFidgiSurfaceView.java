@@ -69,8 +69,14 @@ public class DigiFidgiSurfaceView extends SurfaceView implements SurfaceHolder.C
         float radius = screenBounds.width() * .3f;
         Spinner spinner;
         SpinnerHandler spinnerHandler = SpinnerHandler.getInstance();
+
+        mBodyPaint = new Paint();
+        mBodyPaint.setColor(Color.argb(255,100,100,100));
+        mBodyPaint.setStrokeWidth(3.75f * radius);
+        mBodyPaint.setStyle(Paint.Style.FILL);
+
         if((spinner = spinnerHandler.getSpinner()) == null){
-            spinnerHandler.setSpinner(spinner = new Spinner(mCirclePosition,radius, 3));
+            spinnerHandler.setSpinner(spinner = new Spinner(mCirclePosition,radius, 3, mBodyPaint, mPaint, mPaint2));
         }
 
         mColorUnselected = Color.argb(255, 200, 255, 255);

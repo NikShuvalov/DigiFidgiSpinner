@@ -4,13 +4,18 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.PointF;
 import android.graphics.Rect;
 import android.os.SystemClock;
+import android.util.Log;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Random;
 
 import shuvalov.nikita.digifidgispinner.Spinner;
+
+import static android.content.ContentValues.TAG;
 
 /**
  * Created by NikitaShuvalov on 6/6/17.
@@ -23,9 +28,12 @@ public class RunnerEngine {
     private Paint mTerrainPaint, mOutlinePaint;
     private Rect mScreenBounds;
     private ArrayList<Integer> mMapHeights;
-    private boolean mIsJumping;
+    private boolean mIsJumping, mAirborne;
+    private boolean mGameOver;
+    private int mJumpDuration;
 
     public static final float REFRESH_RATE = 30/1000;
+    public static final float GRAVITY = 5f;
 
     public RunnerEngine(Spinner spinner) {
         mSpinner = spinner;
@@ -42,6 +50,15 @@ public class RunnerEngine {
         mReloadPoint = -mSectionLength *20;
         createPaints();
         generateStartMap();
+        adjustSpinner();
+    }
+
+    private void adjustSpinner(){
+        mSpinner.setRadius(mScreenBounds.height()/18);
+        mSpinner.setCenter(new PointF(mSectionLength, mMapHeights.get(0) - mSpinner.getCombinedRadius()));
+        mAirborne = false;
+        mJumpDuration = 0;
+        mGameOver = false;
     }
 
     private void generateStartMap(){
@@ -98,8 +115,46 @@ public class RunnerEngine {
     public void run(){
         long currentTime = SystemClock.elapsedRealtime();
         long elapsedTime = currentTime - mLastUpdate;
-        if(elapsedTime > REFRESH_RATE){
+        if(elapsedTime > REFRESH_RATE && !mGameOver){
             mLastUpdate = currentTime;
+            mStartPoint+= mSpinner.getRpm() * elapsedTime/4;
+            loadNextSectionIfNecessary();
+            moveSpinner(mSpinner, elapsedTime);
+        }else if (mGameOver){
+            //Start a gameover animation/sound or something. But how?
+        }
+    }
+
+    private void moveSpinner(Spinner spinner, long elapsedTime){
+        float  terrainHeight = getTerrainHeightAtX(getRelativePositionX());
+        if(terrainHeight == -1){
+            terrainHeight = mScreenBounds.height();
+        }
+        PointF spinnerCenter = spinner.getCenter();
+        float stableYCenter = getTerrainHeightAtX(getRelativePositionX()) - spinner.getCombinedRadius();
+        if(stableYCenter < 0){
+            stableYCenter = mScreenBounds.height() - spinner.getCombinedRadius();
+        }
+        if(spinnerCenter.y + spinner.getCombinedRadius()>terrainHeight){ //FixMe: Adjust if this is too unforgiving;
+            mGameOver = true;
+            mSpinner.stop();
+        }
+        if(mIsJumping && mJumpDuration < 20){
+            spinner.getCenter().offset(0,-20);
+            spinner.clearYVelocity();
+            mJumpDuration++;
+        }else if (stableYCenter>spinnerCenter.y){
+            spinner.addYVelocity(GRAVITY * elapsedTime/1000);
+        }
+        float deltaY = spinner.getYVelocity() * elapsedTime;
+        float newYPosition = deltaY + spinnerCenter.y;
+        if(newYPosition >stableYCenter){
+            spinner.getCenter().set(mSectionLength, stableYCenter);
+            mIsJumping= false;
+            mAirborne = false;
+            mJumpDuration = 0;
+        }else{
+            spinner.getCenter().set(mSectionLength, newYPosition);
         }
     }
 
@@ -134,9 +189,34 @@ public class RunnerEngine {
         path.close();
         canvas.drawPath(path, mTerrainPaint);
         canvas.drawPath(path, mOutlinePaint);
-        mStartPoint-=3;
-        loadNextSectionIfNecessary();
         return canvas;
     }
 
+    public void startJump(){
+        if(!mIsJumping && !mAirborne){
+            mIsJumping= true;
+            mAirborne = true;
+        }
+    }
+
+    public void stopJump(){
+        mIsJumping = false;
+    }
+
+
+    private int getTerrainHeightAtX(float x){
+        if (x == 0){
+            return mMapHeights.get(0);
+        }
+        int section = (int)(x/mSectionLength);
+        return mMapHeights.get(section+1);
+    }
+
+    private float getRelativePositionX(){
+        return Math.abs(mStartPoint - mSpinner.getCenter().x);
+    }
+
+    public boolean isGameOver(){
+        return mGameOver;
+    }
 }

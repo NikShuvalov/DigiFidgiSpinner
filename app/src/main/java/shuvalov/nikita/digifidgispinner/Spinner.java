@@ -1,5 +1,7 @@
 package shuvalov.nikita.digifidgispinner;
 
+import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.graphics.PointF;
 import android.os.SystemClock;
 
@@ -8,7 +10,7 @@ import android.os.SystemClock;
  */
 
 public class Spinner {
-    //(RPM = "Rotations per millisecond" in this instance
+    //RPM = "Rotations per millisecond" in this instance
     private float mRpm, mMasterAngle, mRadius;
     private PointF mCenter;
     private long mLastUpdateMillis;
@@ -16,6 +18,8 @@ public class Spinner {
     private float mBearingRadius;
     private PointF[] mBearingCenters;
     private PointF mLastTouch;
+    private Paint mBodyPaint, mPrimaryPaint, mSecondaryPaint;
+    private float mVelocityY;
 
     public static final int MAX_CORNERS = 7;
 
@@ -23,7 +27,7 @@ public class Spinner {
         SLIPPERY, NORMAL, STICKY, INFINITESPIN
     }
 
-    public Spinner(PointF center, float radius, int corners) {
+    public Spinner(PointF center, float radius, int corners, Paint... paints) {
         mCenter = center;
         mRadius = radius;
         mRpm = 0;
@@ -32,6 +36,10 @@ public class Spinner {
         mFriction = Friction.NORMAL;
         mBearingRadius = mRadius/2.5f;
         placePoints(corners);
+        mBodyPaint = paints[0];
+        mPrimaryPaint = paints[1];
+        mSecondaryPaint = paints[2];
+        mVelocityY = 0;
     }
 
     private void placePoints(int corners){
@@ -58,6 +66,19 @@ public class Spinner {
         }
         placePoints(mBearingCenters.length);
         mLastUpdateMillis = currentTime;
+    }
+
+    public void applyRunnerMotion(long startActionTime, long endActionTime, PointF touchEventPoint){
+        float deltaY;
+        long elapsedTime = endActionTime - startActionTime;
+        if(mLastTouch!=null){
+            deltaY = touchEventPoint.x - mLastTouch.x;
+            mRpm -=deltaY * elapsedTime/10000;
+            if(mRpm > 0){
+                mRpm = 0;
+            }
+        }
+        mLastTouch = touchEventPoint;
     }
 
     public void addTorque(long startActionTime, long endActionTime, PointF touchEventPoint){
@@ -214,5 +235,49 @@ public class Spinner {
             corners = 2;
         }
         placePoints(corners);
+    }
+
+    public void setRadius(float radius){
+        mRadius =  radius;
+        mBearingRadius = radius/2.5f;
+        mBodyPaint.setStrokeWidth(mBearingRadius*1.5f);
+        placePoints(mBearingCenters.length);
+    }
+
+    public void drawOnToCanvas(Canvas canvas){
+
+        //Draw connectors
+        for(int i =0; i < mBearingCenters.length; i++) {
+            PointF bearingCenter = mBearingCenters[i];
+            canvas.drawLine(mCenter.x, mCenter.y, bearingCenter.x, bearingCenter.y, mBodyPaint);
+        }
+
+        //Draw Bearings
+        for(int i =0; i< mBearingCenters.length; i++){
+            PointF bearingCenter = mBearingCenters[i];
+            canvas.drawCircle(bearingCenter.x, bearingCenter.y, mBearingRadius, mPrimaryPaint);
+            canvas.drawCircle(bearingCenter.x, bearingCenter.y, mBearingRadius/2, mSecondaryPaint);
+        }
+        canvas.drawCircle(mCenter.x, mCenter.y, mRadius/4, mSecondaryPaint);
+    }
+
+    public float getYVelocity() {
+        return mVelocityY;
+    }
+
+    public void addYVelocity(float velocity){
+        mVelocityY += velocity;
+    }
+
+    public void clearYVelocity(){
+        mVelocityY = 0;
+    }
+
+    public void setCenter(PointF center) {
+        mCenter = center;
+    }
+
+    public float getCombinedRadius(){
+        return mBearingRadius + mRadius;
     }
 }

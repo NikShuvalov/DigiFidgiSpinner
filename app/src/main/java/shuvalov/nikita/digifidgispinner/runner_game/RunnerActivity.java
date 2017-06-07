@@ -1,5 +1,7 @@
 package shuvalov.nikita.digifidgispinner.runner_game;
 
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.PointF;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -38,7 +40,18 @@ public class RunnerActivity extends AppCompatActivity {
     }
 
     private RunnerEngine getRunnerEngine(){
-        Spinner spinner = new Spinner(new PointF(0, 0),50f, 3);
+        Paint paint1 = new Paint();
+        paint1.setColor(Color.RED);
+
+        Paint paint2 = new Paint();
+        paint2.setColor(Color.BLACK);
+
+
+        Paint bodyPaint = new Paint();
+        bodyPaint.setColor(Color.argb(255,100,100,100));
+        bodyPaint.setStyle(Paint.Style.FILL);
+
+        Spinner spinner = new Spinner(new PointF(500, 500),10f, 3, bodyPaint, paint1, paint2);
         return new RunnerEngine(spinner);
     }
 
