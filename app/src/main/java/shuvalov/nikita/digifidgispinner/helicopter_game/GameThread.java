@@ -6,8 +6,6 @@ import android.view.SurfaceHolder;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import shuvalov.nikita.digifidgispinner.FidgiSurfaceView;
-
 /**
  * Created by NikitaShuvalov on 6/6/17.
  */

@@ -20,7 +20,11 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        <activity android:name=".helicopter_game.HelicopterActivity"
+        <activity
+            android:name=".helicopter_game.HelicopterActivity"
+            android:screenOrientation="landscape">
+        </activity>
+        <activity android:name=".runner_game.RunnerActivity"
             android:screenOrientation="landscape">
         </activity>
     </application>

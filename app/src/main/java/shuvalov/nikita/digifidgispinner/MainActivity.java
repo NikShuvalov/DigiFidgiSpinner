@@ -7,11 +7,12 @@ import android.os.Bundle;
 import android.widget.FrameLayout;
 
 import shuvalov.nikita.digifidgispinner.helicopter_game.HelicopterActivity;
+import shuvalov.nikita.digifidgispinner.runner_game.RunnerActivity;
 
-public class MainActivity extends AppCompatActivity implements FidgiSurfaceView.DigiFidgiWidgiCallback {
+public class MainActivity extends AppCompatActivity implements DigiFidgiSurfaceView.DigiFidgiWidgiCallback {
     private FrameLayout mMainFrame;
     private Vibrator mVibrator;
-    private FidgiSurfaceView mFidgiSurfaceView;
+    private DigiFidgiSurfaceView mFidgiSurfaceView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,7 +34,7 @@ public class MainActivity extends AppCompatActivity implements FidgiSurfaceView.
     }
 
     private void setUpOverlay(){
-        mFidgiSurfaceView= new FidgiSurfaceView(this, this);
+        mFidgiSurfaceView= new DigiFidgiSurfaceView(this, this);
         mMainFrame.addView(mFidgiSurfaceView);
     }
 
@@ -53,8 +54,8 @@ public class MainActivity extends AppCompatActivity implements FidgiSurfaceView.
                 break;
             case 2:
                 mFidgiSurfaceView.stopGraphicThread();
-                Intent heliIntent = new Intent(this, HelicopterActivity.class);
-                startActivity(heliIntent);
+                Intent runnerIntent = new Intent(this, RunnerActivity.class);
+                startActivity(runnerIntent);
                 break;
         }
     }

@@ -1,4 +1,4 @@
-package shuvalov.nikita.digifidgispinner;
+package shuvalov.nikita.digifidgispinner.runner_game;
 
 import android.annotation.SuppressLint;
 import android.graphics.Canvas;
@@ -6,19 +6,21 @@ import android.view.SurfaceHolder;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import shuvalov.nikita.digifidgispinner.DigiFidgiSurfaceView;
+
 /**
- * Created by NikitaShuvalov on 5/30/17.
+ * Created by NikitaShuvalov on 6/6/17.
  */
 
-public class GraphicThread extends Thread {
+public class RunnerThread extends Thread {
 
     private final SurfaceHolder mSurfaceHolder;
-    private DigiFidgiSurfaceView mFidgiSurfaceView;
+    private RunnerSurfaceView mRunnerSurfaceView;
     private AtomicBoolean mStop = new AtomicBoolean();
 
-    public GraphicThread(SurfaceHolder surfaceHolder, DigiFidgiSurfaceView fidgiSurfaceView) {
+    public RunnerThread(SurfaceHolder surfaceHolder, RunnerSurfaceView runnerSurfaceView) {
         mSurfaceHolder = surfaceHolder;
-        mFidgiSurfaceView = fidgiSurfaceView;
+        mRunnerSurfaceView = runnerSurfaceView;
         mStop.set(false);
     }
 
@@ -30,7 +32,7 @@ public class GraphicThread extends Thread {
             try{
                 c = mSurfaceHolder.lockCanvas();
                 synchronized (mSurfaceHolder){
-                    if(!mStop.get()) mFidgiSurfaceView.onDraw(c);
+                    if(!mStop.get()) mRunnerSurfaceView.onDraw(c);
                 }
             }finally {
                 if(c != null)mSurfaceHolder.unlockCanvasAndPost(c);
@@ -41,5 +43,4 @@ public class GraphicThread extends Thread {
     public void stopThread(){
         mStop.set(true);
     }
-
 }

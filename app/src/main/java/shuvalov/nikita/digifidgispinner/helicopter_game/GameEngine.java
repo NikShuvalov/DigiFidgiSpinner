@@ -162,7 +162,7 @@ public class GameEngine  {
         for(int i = 1; i< mMapHeights.length; i++){
             terrainPath.lineTo(mStartPoint + mSectionLength*i, mMapHeights[i]);
         }
-        terrainPath.rLineTo(0, mMapHeights[mMapHeights.length-1]);
+        terrainPath.lineTo(0, mMapHeights[mMapHeights.length-1]);
         terrainPath.close();
         return terrainPath;
     }

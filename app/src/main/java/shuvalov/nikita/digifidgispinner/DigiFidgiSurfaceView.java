@@ -17,7 +17,7 @@ import android.view.SurfaceView;
  * Created by NikitaShuvalov on 5/30/17.
  */
 
-public class FidgiSurfaceView extends SurfaceView implements SurfaceHolder.Callback {
+public class DigiFidgiSurfaceView extends SurfaceView implements SurfaceHolder.Callback {
     private GraphicThread mGraphicThread;
     private Paint mPaint, mPaint2;
     private Paint mBodyPaint;
@@ -31,7 +31,7 @@ public class FidgiSurfaceView extends SurfaceView implements SurfaceHolder.Callb
     private int mOptionSelected;
     private int mColorSelected, mColorUnselected;
 
-    public FidgiSurfaceView(Context context, DigiFidgiWidgiCallback digiFidgiWidgiCallback) {
+    public DigiFidgiSurfaceView(Context context, DigiFidgiWidgiCallback digiFidgiWidgiCallback) {
         super(context);
         mOptionSelected = -1;
         mHoveringOption = false;
