@@ -73,7 +73,11 @@ public class RunnerSurfaceView extends SurfaceView implements SurfaceHolder.Call
         }
         mRunnerEngine.drawTerrain(canvas);
         float rpm = Math.abs(mRunnerEngine.getSpinner().getRpm());
+        int remainingTime = (int)(mRunnerEngine.getTimeLeft()/1000);
+        int distance = (int)Math.abs(mRunnerEngine.getDistance());
         canvas.drawText("RPM:" + rpm, 50, 50, mDebugPaint);
+        canvas.drawText("Distance: " + distance, 50, 100, mDebugPaint);
+        canvas.drawText("Time left: " + remainingTime, canvas.getWidth()*.75f,50, mDebugPaint);//ToDo
         mRunnerEngine.getSpinner().drawOnToCanvasRunner(canvas);
     }
 
@@ -84,6 +88,7 @@ public class RunnerSurfaceView extends SurfaceView implements SurfaceHolder.Call
         Spinner spinner = mRunnerEngine.getSpinner();
         switch(action) {
             case MotionEvent.ACTION_DOWN:
+                mRunnerEngine.startGame();
                 mStartActionTime = SystemClock.elapsedRealtime();
                 actionEventTouch.set(event.getX(), event.getY());
                 break;

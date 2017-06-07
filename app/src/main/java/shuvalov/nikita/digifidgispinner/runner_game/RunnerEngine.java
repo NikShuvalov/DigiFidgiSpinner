@@ -7,8 +7,7 @@ import android.graphics.Path;
 import android.graphics.PointF;
 import android.graphics.Rect;
 import android.os.SystemClock;
-import android.util.Log;
-import android.widget.Toast;
+
 
 import java.util.ArrayList;
 import java.util.Random;
@@ -31,10 +30,13 @@ public class RunnerEngine {
     private boolean mGameOver;
     private int mJumpDuration;
     private int mEndHeight; //Height of the last platform, going to be used to keep from creating platforms that are too high for the player to hop.
+    private float mDistance;
+    private long mTimeLeft;
+    private boolean mGameStarted;
 
-    public static final int MAX_HEIGHT_DIFF = 380; //Total jump height capable is 400. So I should allow a window.
-    public static final float REFRESH_RATE = 30/1000;
-    public static final float GRAVITY = 4f;
+    private static final int MAX_HEIGHT_DIFF = 380; //Total jump height capable is 400. So I should allow a window.
+    private static final float REFRESH_RATE = 30/1000;
+    private static final float GRAVITY = 4f;
 
     public RunnerEngine(Spinner spinner) {
         mSpinner = spinner;
@@ -69,7 +71,7 @@ public class RunnerEngine {
             mMapHeights.add(startPlatformHeight);
         }
         preloadNextSection();
-
+        mDistance = 0;
     }
 
     private void preloadNextSection(){
@@ -121,9 +123,16 @@ public class RunnerEngine {
     public void run(){
         long currentTime = SystemClock.elapsedRealtime();
         long elapsedTime = currentTime - mLastUpdate;
-        if(elapsedTime > REFRESH_RATE && !mGameOver){
+        if(elapsedTime > REFRESH_RATE && !mGameOver && mGameStarted){
             mLastUpdate = currentTime;
-            mStartPoint+= mSpinner.getRpm() * elapsedTime/4;
+            float distanceCovered = mSpinner.getRpm() * elapsedTime/4;
+            mStartPoint+= distanceCovered;
+            mDistance+= distanceCovered;
+            mTimeLeft-= elapsedTime;
+            if(mTimeLeft<0){
+                mGameOver = true;
+                mSpinner.stop();
+            }
             loadNextSectionIfNecessary();
             moveSpinner(mSpinner, elapsedTime);
         }else if (mGameOver){
@@ -228,5 +237,21 @@ public class RunnerEngine {
 
     public boolean isGameOver(){
         return mGameOver;
+    }
+
+    public float getDistance(){
+        return mDistance/mSectionLength;
+    }
+
+    public void startGame(){
+        if(!mGameStarted) {
+            mTimeLeft = 60000;
+            mGameStarted = true;
+            mLastUpdate = SystemClock.elapsedRealtime();
+        }
+    }
+
+    public long getTimeLeft() {
+        return mTimeLeft;
     }
 }
