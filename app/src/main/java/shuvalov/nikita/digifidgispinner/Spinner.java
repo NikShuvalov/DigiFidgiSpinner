@@ -244,6 +244,18 @@ public class Spinner {
         placePoints(mBearingCenters.length);
     }
 
+    public void drawOnToCanvasRunner(Canvas canvas){
+        if(Math.abs(mRpm) < 5) {
+            drawOnToCanvas(canvas);
+        }else{
+            canvas.drawCircle(mCenter.x, mCenter.y,getCombinedRadius(),mPrimaryPaint);
+            canvas.drawCircle(mCenter.x, mCenter.y, mRadius + mBearingRadius/2, mSecondaryPaint);
+            canvas.drawCircle(mCenter.x, mCenter.y, mRadius, mPrimaryPaint);
+            canvas.drawCircle(mCenter.x, mCenter.y, mRadius - mBearingRadius/2, mBodyPaint);
+            canvas.drawCircle(mCenter.x, mCenter.y, mRadius/4, mSecondaryPaint);
+        }
+    }
+
     public void drawOnToCanvas(Canvas canvas){
 
         //Draw connectors

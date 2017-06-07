@@ -74,7 +74,7 @@ public class RunnerSurfaceView extends SurfaceView implements SurfaceHolder.Call
         mRunnerEngine.drawTerrain(canvas);
         float rpm = Math.abs(mRunnerEngine.getSpinner().getRpm());
         canvas.drawText("RPM:" + rpm, 50, 50, mDebugPaint);
-        mRunnerEngine.getSpinner().drawOnToCanvas(canvas);
+        mRunnerEngine.getSpinner().drawOnToCanvasRunner(canvas);
     }
 
     @Override

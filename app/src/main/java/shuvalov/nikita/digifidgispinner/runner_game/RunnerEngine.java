@@ -15,7 +15,6 @@ import java.util.Random;
 
 import shuvalov.nikita.digifidgispinner.Spinner;
 
-import static android.content.ContentValues.TAG;
 
 /**
  * Created by NikitaShuvalov on 6/6/17.
@@ -31,9 +30,11 @@ public class RunnerEngine {
     private boolean mIsJumping, mAirborne;
     private boolean mGameOver;
     private int mJumpDuration;
+    private int mEndHeight; //Height of the last platform, going to be used to keep from creating platforms that are too high for the player to hop.
 
+    public static final int MAX_HEIGHT_DIFF = 380; //Total jump height capable is 400. So I should allow a window.
     public static final float REFRESH_RATE = 30/1000;
-    public static final float GRAVITY = 5f;
+    public static final float GRAVITY = 4f;
 
     public RunnerEngine(Spinner spinner) {
         mSpinner = spinner;
@@ -62,9 +63,10 @@ public class RunnerEngine {
     }
 
     private void generateStartMap(){
-        int maxPlatformHeight = mScreenBounds.centerY();
+        int startPlatformHeight = (int)(mScreenBounds.centerY() *1.5f);
         for(int i = 0; i<10; i ++){
-            mMapHeights.add((int)(maxPlatformHeight*1.5));
+            mEndHeight = startPlatformHeight;
+            mMapHeights.add(startPlatformHeight);
         }
         preloadNextSection();
 
@@ -77,13 +79,17 @@ public class RunnerEngine {
         while(mMapHeights.size()<40){
             if(!platform) {
                 int platLength = rng.nextInt(10) + 2;
-                int platHeight = mScreenBounds.height() - rng.nextInt(maxPlatformHeight);
+                int platHeight = (int)(mScreenBounds.height()*.9) - rng.nextInt(maxPlatformHeight);
+                while(Math.abs(platHeight-mEndHeight) > MAX_HEIGHT_DIFF){
+                    platHeight =  (int)(mScreenBounds.height()*.9)- rng.nextInt(maxPlatformHeight);
+                }
                 for (int j = 0; j < platLength; j++) {
                     mMapHeights.add(platHeight);
                 }
                 platform = true;
+                mEndHeight = platHeight;
             }else{
-                int gapLength = rng.nextInt(2)+1;
+                int gapLength = rng.nextInt(2)+1; //FixMe: Increase size of gaps, or increase it as player progresses.
                 for(int j =0; j < gapLength; j++){
                     mMapHeights.add(-1);
                 }
@@ -121,6 +127,7 @@ public class RunnerEngine {
             loadNextSectionIfNecessary();
             moveSpinner(mSpinner, elapsedTime);
         }else if (mGameOver){
+
             //Start a gameover animation/sound or something. But how?
         }
     }
@@ -135,20 +142,23 @@ public class RunnerEngine {
         if(stableYCenter < 0){
             stableYCenter = mScreenBounds.height() - spinner.getCombinedRadius();
         }
-        if(spinnerCenter.y + spinner.getCombinedRadius()>terrainHeight){ //FixMe: Adjust if this is too unforgiving;
-            mGameOver = true;
+        if(spinnerCenter.y>terrainHeight){ //FixMe: Adjust if this is too unforgiving;
+//            mGameOver = true;
+            mSpinner.stop();
+        }else if (terrainHeight == mScreenBounds.height() && spinnerCenter.y == stableYCenter){
+//            mGameOver = true;
             mSpinner.stop();
         }
-        if(mIsJumping && mJumpDuration < 20){
-            spinner.getCenter().offset(0,-20);
+        if(mIsJumping && mJumpDuration < 20 && !mGameOver){
+            spinner.getCenter().offset(0,-20); //FixMe: This should change based on screensize, other screens will not work so well with this.
             spinner.clearYVelocity();
             mJumpDuration++;
-        }else if (stableYCenter>spinnerCenter.y){
+        }else if (stableYCenter>spinnerCenter.y && !mGameOver){
             spinner.addYVelocity(GRAVITY * elapsedTime/1000);
         }
         float deltaY = spinner.getYVelocity() * elapsedTime;
         float newYPosition = deltaY + spinnerCenter.y;
-        if(newYPosition >stableYCenter){
+        if(newYPosition >stableYCenter && !mGameOver){
             spinner.getCenter().set(mSectionLength, stableYCenter);
             mIsJumping= false;
             mAirborne = false;
