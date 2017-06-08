@@ -7,6 +7,7 @@ import android.graphics.Path;
 import android.graphics.PointF;
 import android.graphics.Rect;
 import android.os.SystemClock;
+import android.support.annotation.Nullable;
 
 
 import java.util.ArrayList;
@@ -34,21 +35,24 @@ public class RunnerEngine {
     private long mTimeLeft;
     private boolean mGameActive;
     private boolean mDemoMode;
+    private ScoreCallback mScoreCallback;
 
     private static final int MAX_HEIGHT_DIFF = 380; //Total jump height capable is 400. So I should allow a window.
     private static final float REFRESH_RATE = 30/1000;
     private static final float GRAVITY = 4f;
 
     //====================================== Constructors/Set-up =======================================================
-    public RunnerEngine(Spinner spinner, boolean demoMode) {
+    public RunnerEngine(Spinner spinner, @Nullable ScoreCallback scoreCallback, boolean demoMode) {
         mDemoMode = demoMode;
         mSpinner = spinner;
         mLastUpdate = SystemClock.elapsedRealtime();
+        mScoreCallback = scoreCallback;
         createPaints();
     }
 
-    public RunnerEngine(boolean demoMode){
+    public RunnerEngine(@Nullable ScoreCallback scoreCallback, boolean demoMode){
         mDemoMode = demoMode;
+        mScoreCallback = scoreCallback;
         mSpinner = new Spinner(new PointF(0, 0), 0, 3);
         mLastUpdate = SystemClock.elapsedRealtime();
         createPaints();
@@ -226,8 +230,7 @@ public class RunnerEngine {
                 mDistance += distanceCovered;
                 mTimeLeft -= elapsedTime;
                 if (mTimeLeft < 0) {
-                    mGameOver = true;
-                    mSpinner.stop();
+                    onGameOver();
                 }
                 loadNextSectionIfNecessary();
                 moveSpinner(mSpinner, elapsedTime);
@@ -253,15 +256,20 @@ public class RunnerEngine {
         }
     }
 
+    private void onGameOver(){
+        mGameOver = true;
+        mSpinner.stop();
+        mSpinner.clearYVelocity();
+        mScoreCallback.saveIfHighScore((int)getDistance());
+    }
     private void moveSpinner(Spinner spinner, long elapsedTime){
         PointF spinnerCenter = spinner.getCenter();
         float stableYCenter = getTerrainHeightAtX(getRelativePositionX()) - spinner.getCombinedRadius();
         if(stableYCenter < 0){
             stableYCenter = mScreenBounds.height() - spinner.getCombinedRadius();
         }
-        if(mGameOver = checkIfFellInPit(spinnerCenter, stableYCenter)){
-            spinner.stop();
-            spinner.clearYVelocity();
+        if(checkIfFellInPit(spinnerCenter, stableYCenter)){
+            onGameOver();
         }else {
             if (mIsJumping && mJumpDuration < 20) {
                 spinner.getCenter().offset(0, -20); //FixMe: This should change based on screensize, other screens will not work so well with this.
@@ -390,4 +398,7 @@ public class RunnerEngine {
         return Math.abs(mStartPoint - mSpinner.getCenter().x);
     }
 
+    interface ScoreCallback{
+        void saveIfHighScore(int score);
+    }
 }

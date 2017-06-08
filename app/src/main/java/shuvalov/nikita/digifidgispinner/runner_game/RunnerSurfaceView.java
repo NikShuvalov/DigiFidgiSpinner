@@ -1,6 +1,7 @@
 package shuvalov.nikita.digifidgispinner.runner_game;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -12,6 +13,7 @@ import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
+import shuvalov.nikita.digifidgispinner.AppConstants;
 import shuvalov.nikita.digifidgispinner.Spinner;
 
 
@@ -100,7 +102,7 @@ public class RunnerSurfaceView extends SurfaceView implements SurfaceHolder.Call
         canvas.drawColor(Color.argb(100, 0, 0, 0));
         Rect screenBounds = mRunnerEngine.getScreenBounds();
         canvas.drawText("Game Over", screenBounds.width() * .28f, screenBounds.height() * .25f, mGameOverPaint);
-        String highScoreText = "High score: " + 0;
+        String highScoreText = "High score: " + getContext().getSharedPreferences(AppConstants.PREFERENCES, Context.MODE_PRIVATE).getInt(AppConstants.PREF_HIGH_SCORE, 0);
         String distanceText = "Distance: "+ (int)mRunnerEngine.getDistance();
         String timeText = "Time Remaining: " + (int) mRunnerEngine.getTimeLeft()/1000;
         canvas.drawText(highScoreText,screenBounds.width() * .3f, screenBounds.height() *.35f, mEndStatsPaint);
@@ -156,4 +158,5 @@ public class RunnerSurfaceView extends SurfaceView implements SurfaceHolder.Call
             mRunnerThread.stopThread();
         }
     }
+
 }
