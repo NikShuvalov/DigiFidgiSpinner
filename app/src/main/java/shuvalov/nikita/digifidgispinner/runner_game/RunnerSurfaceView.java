@@ -11,9 +11,9 @@ import android.support.v4.view.MotionEventCompat;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
-import android.widget.Toast;
 
 import shuvalov.nikita.digifidgispinner.Spinner;
+
 
 /**
  * Created by NikitaShuvalov on 6/6/17.

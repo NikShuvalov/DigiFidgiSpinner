@@ -8,9 +8,12 @@ import android.graphics.PointF;
 import android.graphics.Rect;
 import android.os.SystemClock;
 import android.support.v4.view.MotionEventCompat;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+
+import static android.content.ContentValues.TAG;
 
 
 /**
@@ -86,7 +89,9 @@ public class DigiFidgiSurfaceView extends SurfaceView implements SurfaceHolder.C
         mIconOutlinePaint.setColor(mColorSelected);
         mIconOutlinePaint.setStyle(Paint.Style.STROKE);
         mIconOutlinePaint.setStrokeWidth(3f);
-        if(mGraphicThread!=null){return;}
+        if(mGraphicThread!=null){
+            Log.d(TAG, "surfaceCreated: this");
+            return;}
         mGraphicThread = new GraphicThread(surfaceHolder,this);
         mGraphicThread.start();
     }
@@ -108,7 +113,9 @@ public class DigiFidgiSurfaceView extends SurfaceView implements SurfaceHolder.C
         spinner.spin(SystemClock.elapsedRealtime());
         canvas.drawColor(Color.WHITE);
         drawButtons(canvas);
-        spinner.drawOnToCanvas(canvas);
+        synchronized (SpinnerHandler.getInstance().getSpinner()) {
+                spinner.drawOnToCanvas(canvas);
+        }
         debugText(canvas);
         float rpm = spinner.getRpm();
         if(Math.abs(rpm)>1.5f){

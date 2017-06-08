@@ -39,12 +39,14 @@ public class MainActivity extends AppCompatActivity implements MainSurfaceView.C
 
     @Override
     public void onGameSelected() {
+        mMainSurfaceView.stopThread();
         Intent intent = new Intent(this, RunnerActivity.class);
         startActivity(intent);
     }
 
     @Override
     public void onCasualSelected() {
+        mMainSurfaceView.stopThread();
         Intent intent = new Intent(this, FidgetActivity.class);
         startActivity(intent);
     }

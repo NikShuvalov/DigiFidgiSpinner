@@ -9,13 +9,16 @@ import android.graphics.Paint;
 import android.graphics.PointF;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.os.SystemClock;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
 import shuvalov.nikita.digifidgispinner.R;
 import shuvalov.nikita.digifidgispinner.Spinner;
-import shuvalov.nikita.digifidgispinner.SpinnerHandler;
+
+import static android.content.ContentValues.TAG;
 
 /**
  * Created by NikitaShuvalov on 6/8/17.
@@ -59,7 +62,8 @@ public class MainSurfaceView extends SurfaceView implements SurfaceHolder.Callba
 
     @Override
     public void surfaceCreated(SurfaceHolder surfaceHolder) {
-        if( mGraphicStartThread!= null){return;}
+        if( mGraphicStartThread!= null){
+            return;}
         mGraphicStartThread = new GraphicStartThread(surfaceHolder, this);
         mScreenBounds = surfaceHolder.getSurfaceFrame();
         createButtonRects();
@@ -81,7 +85,7 @@ public class MainSurfaceView extends SurfaceView implements SurfaceHolder.Callba
     protected void onDraw(Canvas canvas) {
         canvas.drawColor(mBackgroundColor);
         drawOptions(canvas);
-        SpinnerHandler.getInstance().demonstrateSpinner();
+        demonstrateSpinner();
     }
 
 
@@ -92,7 +96,6 @@ public class MainSurfaceView extends SurfaceView implements SurfaceHolder.Callba
 
         mDemoSpinner = new Spinner(demoCenter,radius, 3);
         mDemoSpinner.changeFriction(Spinner.Friction.STICKY);
-        SpinnerHandler.getInstance().setSpinner(mDemoSpinner);
     }
 
     private void createButtonRects(){
@@ -109,7 +112,9 @@ public class MainSurfaceView extends SurfaceView implements SurfaceHolder.Callba
         canvas.drawRect(mGameModeRect, mFramePaint);
 
         canvas.drawRect(mCasualModeRect, mDebugPaint);
-        SpinnerHandler.getInstance().getSpinner().drawOnToCanvas(canvas);
+        if(mDemoSpinner!=null) {
+            mDemoSpinner.drawOnToCanvas(canvas);
+        }
         canvas.drawRect(mCasualModeRect, mFramePaint);
     }
 
@@ -119,8 +124,10 @@ public class MainSurfaceView extends SurfaceView implements SurfaceHolder.Callba
             case MotionEvent.ACTION_DOWN:
                 PointF touchLoc = new PointF(event.getX(), event.getY());
                 if(mGameModeRect.contains(touchLoc.x, touchLoc.y)){
+                    stopThread();
                     mCallback.onGameSelected();
                 }else if (mCasualModeRect.contains(touchLoc.x, touchLoc.y)){
+                    stopThread();
                     mCallback.onCasualSelected();
                 }
         }
@@ -134,9 +141,15 @@ public class MainSurfaceView extends SurfaceView implements SurfaceHolder.Callba
         }
     }
 
+    public void demonstrateSpinner(){
+        mDemoSpinner.spin(SystemClock.elapsedRealtime());
+        if(mDemoSpinner.getRpm()==0){
+            mDemoSpinner.addRpm(2);
+        }
+    }
+
     interface Callback{
         void onGameSelected();
         void onCasualSelected();
     }
-
 }

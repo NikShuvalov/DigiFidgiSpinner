@@ -13,7 +13,9 @@
         android:theme="@style/AppTheme">
         <activity
             android:name=".FidgetActivity"
-            android:screenOrientation="portrait">
+            android:screenOrientation="portrait"
+            android:parentActivityName=".start_screen.MainActivity"
+            android:launchMode="singleTop">
 
         </activity>
         <activity
@@ -22,9 +24,13 @@
         </activity>
         <activity
             android:name=".runner_game.RunnerActivity"
-            android:screenOrientation="landscape">
+            android:screenOrientation="landscape"
+            android:parentActivityName=".start_screen.MainActivity"
+            android:launchMode="singleTop">
         </activity>
-        <activity android:name=".start_screen.MainActivity">
+        <activity android:name=".start_screen.MainActivity"
+            android:launchMode="singleInstance"
+            android:screenOrientation="portrait">
             <intent-filter>
             <action android:name="android.intent.action.MAIN"/>
 

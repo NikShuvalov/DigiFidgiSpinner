@@ -32,12 +32,4 @@ public class SpinnerHandler {
     public void stopSpinner(){
         mSpinner.stop();
     }
-
-    public void demonstrateSpinner(){
-        mSpinner.spin(SystemClock.elapsedRealtime());
-        if(mSpinner.getRpm()==0){
-            mSpinner.addRpm(2);
-        }
-    }
-
 }
