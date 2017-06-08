@@ -41,7 +41,6 @@ public class RunnerEngine {
     public RunnerEngine(Spinner spinner) {
         mSpinner = spinner;
         mLastUpdate = SystemClock.elapsedRealtime();
-        mIsJumping = false;
     }
 
     public void setScreen(Rect screenBounds){
@@ -59,14 +58,12 @@ public class RunnerEngine {
     private void adjustSpinner(){
         mSpinner.setRadius(mScreenBounds.height()/18);
         mSpinner.setCenter(new PointF(mSectionLength, mMapHeights.get(0) - mSpinner.getCombinedRadius()));
-        mAirborne = false;
-        mJumpDuration = 0;
-        mGameOver = false;
     }
 
     private void generateStartMap(){
+        mMapHeights.clear();
         int startPlatformHeight = (int)(mScreenBounds.centerY() *1.5f);
-        for(int i = 0; i<10; i ++){
+        for(int i = 0; i<15; i ++){
             mEndHeight = startPlatformHeight;
             mMapHeights.add(startPlatformHeight);
         }
@@ -189,17 +186,16 @@ public class RunnerEngine {
     }
 
     private boolean checkIfFellInPit(PointF spinnerCenter, float stableYCenter){
-        float  terrainHeight = getTerrainHeightAtX(getRelativePositionX());
-        if(terrainHeight == -1){
-            terrainHeight = mScreenBounds.height();
+        if(mGameActive) {
+            float terrainHeight = getTerrainHeightAtX(getRelativePositionX());
+            if (terrainHeight == -1) {
+                terrainHeight = mScreenBounds.height();
+            }
+            return (spinnerCenter.y > terrainHeight || (terrainHeight == mScreenBounds.height() && spinnerCenter.y == stableYCenter)); //First half asks if the player is under the terrain surface, other asks if they've landed in a pit.
         }
-        return (spinnerCenter.y>terrainHeight || (terrainHeight == mScreenBounds.height() && spinnerCenter.y == stableYCenter)); //First half asks if the player is under the terrain surface, other asks if they've landed in a pit.
+        return false;
     }
 
-
-    public Paint getTerrainPaint() {
-        return mTerrainPaint;
-    }
 
     public Rect getScreenBounds() {
         return mScreenBounds;
@@ -260,24 +256,31 @@ public class RunnerEngine {
     }
 
     public float getDistance(){
-        return mDistance/mSectionLength;
+        return Math.abs(mDistance/mSectionLength);
     }
 
     public void startGame(){
-        if(!mGameActive) {
-            mTimeLeft = 60000;
-            mGameActive = true;
-            mLastUpdate = SystemClock.elapsedRealtime();
-            mLastWords = false;
-            mJumpDuration = 0;
-            mAirborne = false;
-            mIsJumping = false;
-            mSpinner.clearYVelocity();
-            mSpinner.stop();
-        }
+        mTimeLeft = 60000;
+        mLastUpdate = SystemClock.elapsedRealtime();
+        mStartPoint = 0;
+        mLastWords = false;
+        mJumpDuration = 0;
+        mAirborne = false;
+        mIsJumping = false;
+        mSpinner.clearYVelocity();
+        mSpinner.stop();
+        generateStartMap();
+        adjustSpinner();
+        mGameOver = false;
+        mGameActive = true;
+
     }
 
     public long getTimeLeft() {
         return mTimeLeft;
+    }
+
+    public boolean isGameActive() {
+        return mGameActive;
     }
 }
