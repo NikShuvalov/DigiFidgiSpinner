@@ -53,7 +53,7 @@ public class RunnerActivity extends AppCompatActivity {
         bodyPaint.setStyle(Paint.Style.FILL);
 
         Spinner spinner = new Spinner(new PointF(500, 500),10f, 3, bodyPaint, paint1, paint2);
-        return new RunnerEngine(spinner);
+        return new RunnerEngine(spinner, false);
     }
 
     @Override

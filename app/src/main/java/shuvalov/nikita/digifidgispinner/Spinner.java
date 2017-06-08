@@ -321,6 +321,10 @@ public class Spinner {
         mRpm += f;
     }
 
+    public void setRpm(float rpm){
+        mRpm = rpm;
+    }
+
     public void changeFriction(Friction friction){
         mFriction = friction;
     }

@@ -17,6 +17,7 @@ import android.view.SurfaceView;
 
 import shuvalov.nikita.digifidgispinner.R;
 import shuvalov.nikita.digifidgispinner.Spinner;
+import shuvalov.nikita.digifidgispinner.runner_game.RunnerEngine;
 
 import static android.content.ContentValues.TAG;
 
@@ -30,8 +31,9 @@ public class MainSurfaceView extends SurfaceView implements SurfaceHolder.Callba
     private int mBackgroundColor;
     private RectF mGameModeRect, mCasualModeRect;
     private Paint mFramePaint;
-    private Bitmap mGamePreview, mCasualPreview;
+    private Bitmap mGamePreview;
     private Spinner mDemoSpinner;
+//    private RunnerEngine mRunnerEngine;
 
     public Paint mDebugPaint;
     private MainSurfaceView.Callback mCallback;
@@ -51,6 +53,7 @@ public class MainSurfaceView extends SurfaceView implements SurfaceHolder.Callba
         SurfaceHolder surfaceHolder = getHolder();
         surfaceHolder.addCallback(this);
         mGamePreview = BitmapFactory.decodeResource(context.getResources(), R.drawable.game_preview);
+//        mRunnerEngine = new RunnerEngine(true);
     }
 
     private void createPaints(){
@@ -67,6 +70,9 @@ public class MainSurfaceView extends SurfaceView implements SurfaceHolder.Callba
         mGraphicStartThread = new GraphicStartThread(surfaceHolder, this);
         mScreenBounds = surfaceHolder.getSurfaceFrame();
         createButtonRects();
+//        Rect r = new Rect();
+//        mGameModeRect.round(r);
+//        mRunnerEngine.setScreen(r);
         createDemoSpinner();
         mGraphicStartThread.start();
     }
@@ -85,6 +91,7 @@ public class MainSurfaceView extends SurfaceView implements SurfaceHolder.Callba
     protected void onDraw(Canvas canvas) {
         canvas.drawColor(mBackgroundColor);
         drawOptions(canvas);
+//        mRunnerEngine.runDemoMode();
         demonstrateSpinner();
     }
 
@@ -108,7 +115,7 @@ public class MainSurfaceView extends SurfaceView implements SurfaceHolder.Callba
     }
 
     private void drawOptions(Canvas canvas){
-        canvas.drawBitmap(mGamePreview,null, mGameModeRect, null);
+        canvas.drawBitmap(mGamePreview, null, mGameModeRect, null);
         canvas.drawRect(mGameModeRect, mFramePaint);
 
         canvas.drawRect(mCasualModeRect, mDebugPaint);
