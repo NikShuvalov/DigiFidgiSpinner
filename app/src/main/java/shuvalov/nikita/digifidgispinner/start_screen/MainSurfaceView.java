@@ -1,6 +1,8 @@
 package shuvalov.nikita.digifidgispinner.start_screen;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -10,6 +12,10 @@ import android.graphics.RectF;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+
+import shuvalov.nikita.digifidgispinner.R;
+import shuvalov.nikita.digifidgispinner.Spinner;
+import shuvalov.nikita.digifidgispinner.SpinnerHandler;
 
 /**
  * Created by NikitaShuvalov on 6/8/17.
@@ -21,6 +27,8 @@ public class MainSurfaceView extends SurfaceView implements SurfaceHolder.Callba
     private int mBackgroundColor;
     private RectF mGameModeRect, mCasualModeRect;
     private Paint mFramePaint;
+    private Bitmap mGamePreview, mCasualPreview;
+    private Spinner mDemoSpinner;
 
     public Paint mDebugPaint;
     private MainSurfaceView.Callback mCallback;
@@ -33,19 +41,20 @@ public class MainSurfaceView extends SurfaceView implements SurfaceHolder.Callba
         super(context);
 
         mCallback = mainSurfaceViewCallback;
-        mBackgroundColor = Color.argb(255, 0, 25,50);
+        mBackgroundColor = Color.argb(255, 230, 230,230);
         createPaints();
         mDebugPaint = new Paint();
         mDebugPaint.setColor(Color.WHITE);
         SurfaceHolder surfaceHolder = getHolder();
         surfaceHolder.addCallback(this);
+        mGamePreview = BitmapFactory.decodeResource(context.getResources(), R.drawable.game_preview);
     }
 
     private void createPaints(){
         mFramePaint = new Paint();
         mFramePaint.setColor(Color.DKGRAY);
         mFramePaint.setStyle(Paint.Style.STROKE);
-        mFramePaint.setStrokeWidth(4f);
+        mFramePaint.setStrokeWidth(20f);
     }
 
     @Override
@@ -54,6 +63,7 @@ public class MainSurfaceView extends SurfaceView implements SurfaceHolder.Callba
         mGraphicStartThread = new GraphicStartThread(surfaceHolder, this);
         mScreenBounds = surfaceHolder.getSurfaceFrame();
         createButtonRects();
+        createDemoSpinner();
         mGraphicStartThread.start();
     }
 
@@ -71,6 +81,18 @@ public class MainSurfaceView extends SurfaceView implements SurfaceHolder.Callba
     protected void onDraw(Canvas canvas) {
         canvas.drawColor(mBackgroundColor);
         drawOptions(canvas);
+        SpinnerHandler.getInstance().demonstrateSpinner();
+    }
+
+
+    private void createDemoSpinner(){
+        PointF demoCenter = new PointF(mCasualModeRect.centerX(), mCasualModeRect.centerY());
+        float radius = mCasualModeRect.height() > mCasualModeRect.width() ?
+                mCasualModeRect.width() *.3f : mCasualModeRect.height() *.3f;
+
+        mDemoSpinner = new Spinner(demoCenter,radius, 3);
+        mDemoSpinner.changeFriction(Spinner.Friction.STICKY);
+        SpinnerHandler.getInstance().setSpinner(mDemoSpinner);
     }
 
     private void createButtonRects(){
@@ -83,11 +105,11 @@ public class MainSurfaceView extends SurfaceView implements SurfaceHolder.Callba
     }
 
     private void drawOptions(Canvas canvas){
-
-        canvas.drawRect(mGameModeRect, mDebugPaint);
+        canvas.drawBitmap(mGamePreview,null, mGameModeRect, null);
         canvas.drawRect(mGameModeRect, mFramePaint);
 
         canvas.drawRect(mCasualModeRect, mDebugPaint);
+        SpinnerHandler.getInstance().getSpinner().drawOnToCanvas(canvas);
         canvas.drawRect(mCasualModeRect, mFramePaint);
     }
 

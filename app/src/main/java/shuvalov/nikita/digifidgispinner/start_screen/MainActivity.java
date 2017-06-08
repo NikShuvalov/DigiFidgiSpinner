@@ -7,6 +7,7 @@ import android.widget.FrameLayout;
 
 import shuvalov.nikita.digifidgispinner.FidgetActivity;
 import shuvalov.nikita.digifidgispinner.R;
+import shuvalov.nikita.digifidgispinner.SpinnerHandler;
 import shuvalov.nikita.digifidgispinner.runner_game.RunnerActivity;
 
 public class MainActivity extends AppCompatActivity implements MainSurfaceView.Callback {

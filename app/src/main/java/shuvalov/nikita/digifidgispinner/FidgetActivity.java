@@ -20,12 +20,16 @@ public class FidgetActivity extends AppCompatActivity implements DigiFidgiSurfac
         findViews();
         mVibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
 
+
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         setUpOverlay();
+        if(SpinnerHandler.getInstance().getSpinner()!=null) {
+            SpinnerHandler.getInstance().stopSpinner();
+        }
     }
 
     private void findViews(){

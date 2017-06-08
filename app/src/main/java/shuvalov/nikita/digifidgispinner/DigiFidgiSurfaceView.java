@@ -66,25 +66,16 @@ public class DigiFidgiSurfaceView extends SurfaceView implements SurfaceHolder.C
                 new Rect((int)(width *.6), 16, (int)(width*.8 - 16), 100),
         };
         float radius = screenBounds.width() * .3f;
-        Spinner spinner;
         SpinnerHandler spinnerHandler = SpinnerHandler.getInstance();
 
         mBodyPaint = new Paint();
         mBodyPaint.setColor(Color.argb(255,100,100,100));
-        mBodyPaint.setStrokeWidth(3.75f * radius);
         mBodyPaint.setStyle(Paint.Style.FILL);
 
-        if((spinner = spinnerHandler.getSpinner()) == null){
-            spinnerHandler.setSpinner(spinner = new Spinner(mCirclePosition,radius, 3, mBodyPaint, mPaint, mPaint2));
-        }
+        spinnerHandler.setSpinner(new Spinner(mCirclePosition,radius, 3, mBodyPaint, mPaint, mPaint2));
 
         mColorUnselected = Color.argb(255, 200, 255, 255);
         mColorSelected = Color.argb(255, 125, 200, 200);
-
-        mBodyPaint = new Paint();
-        mBodyPaint.setColor(Color.argb(255,100,100,100));
-        mBodyPaint.setStrokeWidth(spinner.getBearingRadius()*1.5f);
-        mBodyPaint.setStyle(Paint.Style.FILL);
 
         mIconButtonUnselectedPaint = new Paint();
         mIconButtonUnselectedPaint.setColor(mColorUnselected);
@@ -117,7 +108,7 @@ public class DigiFidgiSurfaceView extends SurfaceView implements SurfaceHolder.C
         spinner.spin(SystemClock.elapsedRealtime());
         canvas.drawColor(Color.WHITE);
         drawButtons(canvas);
-        drawSpinner(canvas);
+        spinner.drawOnToCanvas(canvas);
         debugText(canvas);
         float rpm = spinner.getRpm();
         if(Math.abs(rpm)>1.5f){
@@ -139,27 +130,6 @@ public class DigiFidgiSurfaceView extends SurfaceView implements SurfaceHolder.C
 
     private void debugText(Canvas canvas){
         canvas.drawText(String.valueOf("Rpm :" + SpinnerHandler.getInstance().getSpinner().getRpm()), 50, 30, mDebugTextPaint);
-    }
-
-    private void drawSpinner(Canvas canvas){
-        Spinner spinner = SpinnerHandler.getInstance().getSpinner();
-        PointF[] bearingCenters = spinner.getBearingCenters();
-        float bearingRadius = spinner.getBearingRadius();
-        PointF spinnerCenter = spinner.getCenter();
-
-        //Draw connectors
-        for(int i =0; i < bearingCenters.length; i++) {
-            PointF bearingCenter = bearingCenters[i];
-            canvas.drawLine(spinnerCenter.x, spinnerCenter.y, bearingCenter.x, bearingCenter.y, mBodyPaint);
-        }
-
-        //Draw Bearings
-        for(int i =0; i< bearingCenters.length; i++){
-            PointF bearingCenter = bearingCenters[i];
-            canvas.drawCircle(bearingCenter.x, bearingCenter.y, bearingRadius, mPaint);
-            canvas.drawCircle(bearingCenter.x, bearingCenter.y, bearingRadius/2, mPaint2);
-        }
-        canvas.drawCircle(spinnerCenter.x, spinnerCenter.y, SpinnerHandler.getInstance().getSpinner().getRadius()/4, mPaint2);
     }
 
     public void stopGraphicThread(){

@@ -61,6 +61,5 @@ public class RunnerActivity extends AppCompatActivity {
         super.onPause();
         mRunnerSurfaceView.stopThread();
         mGameContainer.removeAllViews();
-        SpinnerHandler.getInstance().stopSpinner();
     }
 }

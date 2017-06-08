@@ -1,6 +1,7 @@
 package shuvalov.nikita.digifidgispinner;
 
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PointF;
 import android.os.SystemClock;
@@ -35,11 +36,31 @@ public class Spinner {
         mLastUpdateMillis = SystemClock.elapsedRealtime();
         mFriction = Friction.NORMAL;
         mBearingRadius = mRadius/2.5f;
-        placePoints(corners);
-        mBodyPaint = paints[0];
-        mPrimaryPaint = paints[1];
-        mSecondaryPaint = paints[2];
         mVelocityY = 0;
+        placePoints(corners);
+        if(paints== null || paints.length<3){
+            generateRandomPaints();
+        }else {
+            mBodyPaint = paints[0];
+            mBodyPaint.setStrokeWidth(mBearingRadius*1.5f);
+            mPrimaryPaint = paints[1];
+            mSecondaryPaint = paints[2];
+        }
+    }
+
+    private void generateRandomPaints(){
+        mBodyPaint = new Paint();
+        mBodyPaint.setColor(Color.argb(255,100,100,100));
+        mBodyPaint.setStrokeWidth(mBearingRadius*1.5f);
+        mBodyPaint.setStyle(Paint.Style.FILL);
+
+
+        mPrimaryPaint = new Paint();
+        mPrimaryPaint.setColor(Color.RED);
+
+        mSecondaryPaint = new Paint();
+        mSecondaryPaint.setColor(Color.BLACK);
+
     }
 
     private void placePoints(int corners){
@@ -294,5 +315,13 @@ public class Spinner {
     }
     public float getCombinedRadius(){
         return mBearingRadius + mRadius;
+    }
+
+    public void addRpm(float f){
+        mRpm += f;
+    }
+
+    public void changeFriction(Friction friction){
+        mFriction = friction;
     }
 }

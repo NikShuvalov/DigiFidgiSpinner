@@ -1,5 +1,7 @@
 package shuvalov.nikita.digifidgispinner;
 
+import android.os.SystemClock;
+
 /**
  * Created by NikitaShuvalov on 6/1/17.
  */
@@ -29,6 +31,13 @@ public class SpinnerHandler {
 
     public void stopSpinner(){
         mSpinner.stop();
+    }
+
+    public void demonstrateSpinner(){
+        mSpinner.spin(SystemClock.elapsedRealtime());
+        if(mSpinner.getRpm()==0){
+            mSpinner.addRpm(2);
+        }
     }
 
 }
