@@ -27,4 +27,8 @@ public class SpinnerHandler {
         mSpinner = spinner;
     }
 
+    public void stopSpinner(){
+        mSpinner.stop();
+    }
+
 }

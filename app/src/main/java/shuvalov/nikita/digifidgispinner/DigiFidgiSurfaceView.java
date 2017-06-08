@@ -64,7 +64,6 @@ public class DigiFidgiSurfaceView extends SurfaceView implements SurfaceHolder.C
         mOptionsRects = new Rect[]{
                 new Rect((int)(width*.8), 16, (int)(width - 16), 100),
                 new Rect((int)(width *.6), 16, (int)(width*.8 - 16), 100),
-                new Rect((int)(width *.3), 16, (int)(width*.6 -16), 100)
         };
         float radius = screenBounds.width() * .3f;
         Spinner spinner;

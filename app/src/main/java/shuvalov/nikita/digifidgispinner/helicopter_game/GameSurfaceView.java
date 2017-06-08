@@ -121,7 +121,9 @@ public class GameSurfaceView extends SurfaceView implements SurfaceHolder.Callba
 //    }
 
     public void stopThread(){
-        mGameThread.stopThread();
+        if(mGameThread!=null && mGameThread.isAlive()){
+            mGameThread.stopThread();
+        }
     }
 
     @Override

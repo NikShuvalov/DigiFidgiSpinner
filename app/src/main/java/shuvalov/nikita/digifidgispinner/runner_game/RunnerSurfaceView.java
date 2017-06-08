@@ -36,8 +36,9 @@ public class RunnerSurfaceView extends SurfaceView implements SurfaceHolder.Call
         SurfaceHolder surfaceHolder = getHolder();
         surfaceHolder.addCallback(this);
         mRunnerEngine = runnerEngine;
-        createPaints();
         mBlinkDuration  = 0;
+        createPaints();
+
     }
 
     private void createPaints(){
@@ -58,7 +59,9 @@ public class RunnerSurfaceView extends SurfaceView implements SurfaceHolder.Call
 
     @Override
     public void surfaceCreated(SurfaceHolder surfaceHolder) {
-        if(mRunnerThread!=null){return;}
+        if(mRunnerThread!=null){
+            createPaints();
+            return;}
         mRunnerThread = new RunnerThread(surfaceHolder, this);
         mRunnerThread.start();
         mRunnerEngine.setScreen(surfaceHolder.getSurfaceFrame());
@@ -148,7 +151,9 @@ public class RunnerSurfaceView extends SurfaceView implements SurfaceHolder.Call
         return true;
     }
 
-    public void stopThread(){
-        mRunnerThread.stopThread();
+    public void stopThread() {
+        if(mRunnerThread!=null && mRunnerThread.isAlive()) {
+            mRunnerThread.stopThread();
+        }
     }
 }

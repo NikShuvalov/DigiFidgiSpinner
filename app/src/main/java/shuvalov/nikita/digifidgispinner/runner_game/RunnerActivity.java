@@ -9,6 +9,7 @@ import android.widget.FrameLayout;
 
 import shuvalov.nikita.digifidgispinner.R;
 import shuvalov.nikita.digifidgispinner.Spinner;
+import shuvalov.nikita.digifidgispinner.SpinnerHandler;
 
 public class RunnerActivity extends AppCompatActivity {
     private FrameLayout mGameContainer;
@@ -56,9 +57,10 @@ public class RunnerActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onStop() {
-        super.onStop();
-        mGameContainer.removeAllViews();
+    protected void onPause() {
+        super.onPause();
         mRunnerSurfaceView.stopThread();
+        mGameContainer.removeAllViews();
+        SpinnerHandler.getInstance().stopSpinner();
     }
 }

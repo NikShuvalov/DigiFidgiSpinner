@@ -6,10 +6,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.widget.FrameLayout;
 
-import shuvalov.nikita.digifidgispinner.helicopter_game.HelicopterActivity;
 import shuvalov.nikita.digifidgispinner.runner_game.RunnerActivity;
 
-public class MainActivity extends AppCompatActivity implements DigiFidgiSurfaceView.DigiFidgiWidgiCallback {
+public class FidgetActivity extends AppCompatActivity implements DigiFidgiSurfaceView.DigiFidgiWidgiCallback {
     private FrameLayout mMainFrame;
     private Vibrator mVibrator;
     private DigiFidgiSurfaceView mFidgiSurfaceView;
@@ -17,7 +16,7 @@ public class MainActivity extends AppCompatActivity implements DigiFidgiSurfaceV
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_fidget);
         findViews();
         mVibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
 
@@ -52,17 +51,13 @@ public class MainActivity extends AppCompatActivity implements DigiFidgiSurfaceV
             case 1:
                 SpinnerHandler.getInstance().getSpinner().removeCorner();
                 break;
-            case 2:
-                mFidgiSurfaceView.stopGraphicThread();
-                Intent runnerIntent = new Intent(this, RunnerActivity.class);
-                startActivity(runnerIntent);
-                break;
         }
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        mMainFrame.removeAllViews();
+        mFidgiSurfaceView.stopGraphicThread();
+        mMainFrame.removeView(mFidgiSurfaceView);
     }
 }
