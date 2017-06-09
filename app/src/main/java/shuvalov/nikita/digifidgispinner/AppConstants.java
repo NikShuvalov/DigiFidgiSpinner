@@ -12,6 +12,7 @@ import static android.content.ContentValues.TAG;
 public class AppConstants {
     public static final String PREFERENCES = "Shared Preferences";
     public static final String PREF_HIGH_SCORE = "High Score";
+    public static final String PREF_VIBRATE = "Vibration";
 
     public static float getAngle(PointF circleCenter, float x, float y){
         float adjacent = x- circleCenter.x;

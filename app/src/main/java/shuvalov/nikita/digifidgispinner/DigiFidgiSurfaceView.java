@@ -1,6 +1,8 @@
 package shuvalov.nikita.digifidgispinner;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -33,6 +35,7 @@ public class DigiFidgiSurfaceView extends SurfaceView implements SurfaceHolder.C
     private Rect[] mOptionsRects;
     private int mOptionSelected;
     private int mColorSelected, mColorUnselected;
+    private Bitmap mPlusIcon, mMinusIcon, mVibration, mVibrationOff;
 
     public DigiFidgiSurfaceView(Context context, DigiFidgiWidgiCallback digiFidgiWidgiCallback) {
         super(context);
@@ -53,6 +56,11 @@ public class DigiFidgiSurfaceView extends SurfaceView implements SurfaceHolder.C
         mPaint2.setColor(Color.BLACK);
 
         mDigiFidgiWidgiCallback = digiFidgiWidgiCallback;
+
+        mPlusIcon = BitmapFactory.decodeResource(getResources(), R.drawable.add_corner);
+        mMinusIcon = BitmapFactory.decodeResource(getResources(), R.drawable.remove_corner);
+        mVibration = BitmapFactory.decodeResource(getResources(), R.drawable.ic_vibration);
+        mVibrationOff = BitmapFactory.decodeResource(getResources(), R.drawable.vibrate_off);
     }
 
 
@@ -64,10 +72,7 @@ public class DigiFidgiSurfaceView extends SurfaceView implements SurfaceHolder.C
         mCirclePosition = new PointF(screenBounds.centerX(),screenBounds.centerY());
 
         float width = screenBounds.width();
-        mOptionsRects = new Rect[]{
-                new Rect((int)(width*.8), 16, (int)(width - 16), 100),
-                new Rect((int)(width *.6), 16, (int)(width*.8 - 16), 100),
-        };
+
         float radius = screenBounds.width() * .3f;
         SpinnerHandler spinnerHandler = SpinnerHandler.getInstance();
 
@@ -76,6 +81,8 @@ public class DigiFidgiSurfaceView extends SurfaceView implements SurfaceHolder.C
         mBodyPaint.setStyle(Paint.Style.FILL);
 
         spinnerHandler.setSpinner(new Spinner(mCirclePosition,radius, 3, mBodyPaint, mPaint, mPaint2));
+
+        createOptionRects(width, spinnerHandler.getSpinner().getBearingRadius());
 
         mColorUnselected = Color.argb(255, 200, 255, 255);
         mColorSelected = Color.argb(255, 125, 200, 200);
@@ -90,10 +97,24 @@ public class DigiFidgiSurfaceView extends SurfaceView implements SurfaceHolder.C
         mIconOutlinePaint.setStyle(Paint.Style.STROKE);
         mIconOutlinePaint.setStrokeWidth(3f);
         if(mGraphicThread!=null){
-            Log.d(TAG, "surfaceCreated: this");
             return;}
         mGraphicThread = new GraphicThread(surfaceHolder,this);
         mGraphicThread.start();
+    }
+
+    private void createOptionRects(float screenWidth, float bearingRadius){
+        int buttonSideLength = (int)(bearingRadius*1.25);
+        int margin = 24;
+        int endOptionLeft = (int)(screenWidth*.8);
+        mOptionsRects = new Rect[3];
+        Rect r = new Rect(endOptionLeft, margin, (int)(screenWidth - margin), margin + buttonSideLength);
+        mOptionsRects[0] = r;
+        Rect r1 = new Rect(r);
+        r1.offset(- buttonSideLength - (margin*2), 0);
+        mOptionsRects[1] = r1;
+        Rect r2 = new Rect(r1);
+        r2.offset(-buttonSideLength - (margin *2), 0);
+        mOptionsRects[2] = r2;
     }
 
     @Override
@@ -113,9 +134,7 @@ public class DigiFidgiSurfaceView extends SurfaceView implements SurfaceHolder.C
         spinner.spin(SystemClock.elapsedRealtime());
         canvas.drawColor(Color.WHITE);
         drawButtons(canvas);
-        synchronized (SpinnerHandler.getInstance().getSpinner()) {
-                spinner.drawOnToCanvas(canvas);
-        }
+        spinner.drawOnToCanvas(canvas);
         debugText(canvas);
         float rpm = spinner.getRpm();
         if(Math.abs(rpm)>1.5f){
@@ -130,6 +149,18 @@ public class DigiFidgiSurfaceView extends SurfaceView implements SurfaceHolder.C
                 canvas.drawRect(r, i == mOptionSelected ? mIconButtonSelectedPaint : mIconButtonUnselectedPaint);
             }else{
                 canvas.drawRect(r, mIconButtonUnselectedPaint);
+            }
+            if(i<2) {
+                canvas.drawBitmap(i == 0 ? mPlusIcon : mMinusIcon,
+                        null, r, null);
+
+            }else{
+                canvas.drawBitmap(getContext().
+                        getSharedPreferences(AppConstants.PREFERENCES, Context.MODE_PRIVATE).
+                        getBoolean(AppConstants.PREF_VIBRATE, true) ?
+                                mVibration :
+                                mVibrationOff,
+                        null, r, null);
             }
             canvas.drawRect(r, mIconOutlinePaint);
         }

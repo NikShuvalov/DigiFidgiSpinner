@@ -242,20 +242,27 @@ public class Spinner {
         mRpm = 0;
     }
 
-    public void addCorner(){
+    public boolean addCorner(){
         int corners = mBearingCenters.length+1;
         if(corners>MAX_CORNERS){
             corners = MAX_CORNERS;
+            placePoints(corners);
+            return false;
         }
         placePoints(corners);
+        return true;
     }
 
-    public void removeCorner(){
+    public boolean removeCorner(){
         int corners = mBearingCenters.length-1;
         if(corners<=1){
             corners = 2;
+            placePoints(corners);
+            return false;
+
         }
         placePoints(corners);
+        return true;
     }
 
     public void setRadius(float radius){
@@ -327,5 +334,17 @@ public class Spinner {
 
     public void changeFriction(Friction friction){
         mFriction = friction;
+    }
+
+    public Paint getBodyPaint() {
+        return mBodyPaint;
+    }
+
+    public Paint getPrimaryPaint() {
+        return mPrimaryPaint;
+    }
+
+    public Paint getSecondaryPaint() {
+        return mSecondaryPaint;
     }
 }

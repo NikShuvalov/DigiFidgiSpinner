@@ -30,6 +30,8 @@ public class SpinnerHandler {
     }
 
     public void stopSpinner(){
-        mSpinner.stop();
+        if(mSpinner!=null) {
+            mSpinner.stop();
+        }
     }
 }
