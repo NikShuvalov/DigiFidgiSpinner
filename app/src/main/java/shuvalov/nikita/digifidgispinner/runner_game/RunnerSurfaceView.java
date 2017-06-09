@@ -1,7 +1,8 @@
 package shuvalov.nikita.digifidgispinner.runner_game;
 
 import android.content.Context;
-import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -14,6 +15,7 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
 import shuvalov.nikita.digifidgispinner.AppConstants;
+import shuvalov.nikita.digifidgispinner.R;
 import shuvalov.nikita.digifidgispinner.Spinner;
 
 
@@ -31,8 +33,11 @@ public class RunnerSurfaceView extends SurfaceView implements SurfaceHolder.Call
     private int mBlinkDuration;
     private boolean mBlinking;
     private boolean mTutorial;
+    private Bitmap mFingerPrint;
+    private int mFingerFrame;
 
     public static final int BLINK_DURATION = 20;
+    public static final int FINGER_FRAMES =80;
 
     public RunnerSurfaceView(Context context, RunnerEngine runnerEngine) {
         super(context);
@@ -41,7 +46,9 @@ public class RunnerSurfaceView extends SurfaceView implements SurfaceHolder.Call
         mRunnerEngine = runnerEngine;
         mBlinkDuration  = 0;
         mTutorial = true;
+        mFingerPrint = BitmapFactory.decodeResource(getResources(), R.drawable.ic_fingerprint);
         createPaints();
+        mFingerFrame = 0;
     }
 
     private void createPaints(){
@@ -103,14 +110,33 @@ public class RunnerSurfaceView extends SurfaceView implements SurfaceHolder.Call
 
     private void drawTutorialOverlay(Canvas canvas){
         canvas.drawColor(Color.argb(100, 0, 0, 0));
-        Rect screenBounds = mRunnerEngine.getScreenBounds();
 
-        //Draw Swiping finger?
-        canvas.drawText("Swipe right to speed up", screenBounds.width() * .3f, screenBounds.height() * .3f, mEndStatsPaint);
-        //Draw 2 fingerprints touching down?
-        canvas.drawText("Tap with two fingers to jump", screenBounds.width() * .3f, screenBounds.height() * .6f, mEndStatsPaint);
+        double increment = (int)(canvas.getWidth() *.3)/FINGER_FRAMES;
+        int leftStart = (int)(canvas.getWidth() * .3);
+        int swiperTop = (int)(canvas.getHeight() *.05);
+        int squareLength = (int)(canvas.getHeight() *.2f);
+        int left = (int)(leftStart + (increment * mFingerFrame));
 
+        int tapperTop = swiperTop + (int)(canvas.getHeight() *.3f);
+        int secondFingerLeft = leftStart + (squareLength *2);
 
+        Rect topFingerRect = new Rect(left, swiperTop, left + squareLength,swiperTop + squareLength);
+
+        Rect botFingerRect1 = new Rect(leftStart, tapperTop, leftStart + squareLength, tapperTop + squareLength);
+        Rect botFingerRect2 = new Rect(secondFingerLeft, tapperTop, secondFingerLeft + squareLength, tapperTop + squareLength);
+
+        canvas.drawBitmap(mFingerPrint, null, topFingerRect, null);
+        canvas.drawText("Swipe right to speed up", canvas.getWidth() * .3f, canvas.getHeight()* .3f, mEndStatsPaint);
+        if(mFingerFrame< FINGER_FRAMES/2){
+            canvas.drawBitmap(mFingerPrint, null, botFingerRect1, null);
+            canvas.drawBitmap(mFingerPrint, null, botFingerRect2, null);
+        }
+        canvas.drawText("Tap with two fingers to jump", canvas.getWidth() * .3f, canvas.getHeight() * .6f, mEndStatsPaint);
+
+        mFingerFrame++;
+        if(mFingerFrame>= FINGER_FRAMES){
+            mFingerFrame = 0;
+        }
     }
 
     private void drawGameOverOverlay(Canvas canvas){
