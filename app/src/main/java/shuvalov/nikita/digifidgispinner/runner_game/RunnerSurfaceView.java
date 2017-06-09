@@ -30,6 +30,7 @@ public class RunnerSurfaceView extends SurfaceView implements SurfaceHolder.Call
     private Paint mGameOverPaint, mEndStatsPaint;
     private int mBlinkDuration;
     private boolean mBlinking;
+    private boolean mTutorial;
 
     public static final int BLINK_DURATION = 20;
 
@@ -39,8 +40,8 @@ public class RunnerSurfaceView extends SurfaceView implements SurfaceHolder.Call
         surfaceHolder.addCallback(this);
         mRunnerEngine = runnerEngine;
         mBlinkDuration  = 0;
+        mTutorial = true;
         createPaints();
-
     }
 
     private void createPaints(){
@@ -93,9 +94,23 @@ public class RunnerSurfaceView extends SurfaceView implements SurfaceHolder.Call
         canvas.drawText("Distance: " + distance, 50, 100, mDebugPaint);
         canvas.drawText("Time left: " + remainingTime, canvas.getWidth()*.75f,50, mDebugPaint);
         mRunnerEngine.getSpinner().drawOnToCanvasRunner(canvas);
-        if(mRunnerEngine.isGameOver()){
+        if(mTutorial){
+            drawTutorialOverlay(canvas);
+        }else if(mRunnerEngine.isGameOver()){
             drawGameOverOverlay(canvas);
         }
+    }
+
+    private void drawTutorialOverlay(Canvas canvas){
+        canvas.drawColor(Color.argb(100, 0, 0, 0));
+        Rect screenBounds = mRunnerEngine.getScreenBounds();
+
+        //Draw Swiping finger?
+        canvas.drawText("Swipe right to speed up", screenBounds.width() * .3f, screenBounds.height() * .3f, mEndStatsPaint);
+        //Draw 2 fingerprints touching down?
+        canvas.drawText("Tap with two fingers to jump", screenBounds.width() * .3f, screenBounds.height() * .6f, mEndStatsPaint);
+
+
     }
 
     private void drawGameOverOverlay(Canvas canvas){
@@ -126,6 +141,9 @@ public class RunnerSurfaceView extends SurfaceView implements SurfaceHolder.Call
         Spinner spinner = mRunnerEngine.getSpinner();
         switch(action) {
             case MotionEvent.ACTION_DOWN:
+                if(mTutorial){
+                    mTutorial= false;
+                }
                 if(!mRunnerEngine.isGameActive()) {
                     mRunnerEngine.startGame();
                 }
