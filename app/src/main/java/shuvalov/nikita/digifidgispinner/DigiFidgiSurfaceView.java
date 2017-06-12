@@ -66,14 +66,11 @@ public class DigiFidgiSurfaceView extends CustomSurfaceView implements SurfaceHo
     @Override
     public void surfaceCreated(SurfaceHolder surfaceHolder) {
         if(getGraphicThread()!=null){
-            Log.d(TAG, "surfaceCreated: Huh");
             return;}
         
         Rect screenBounds = surfaceHolder.getSurfaceFrame();
         setScreenBounds(screenBounds);
         mCirclePosition = new PointF(screenBounds.centerX(),screenBounds.centerY());
-
-        float width = screenBounds.width();
 
         float radius = screenBounds.width() * .3f;
         SpinnerHandler spinnerHandler = SpinnerHandler.getInstance();
@@ -84,7 +81,7 @@ public class DigiFidgiSurfaceView extends CustomSurfaceView implements SurfaceHo
 
         spinnerHandler.setSpinner(new Spinner(mCirclePosition,radius, 3, mBodyPaint, mPaint, mPaint2));
 
-        createOptionRects(width, spinnerHandler.getSpinner().getBearingRadius());
+        createOptionRects(screenBounds.width());
 
         mColorUnselected = Color.argb(255, 200, 255, 255);
         mColorSelected = Color.argb(255, 125, 200, 200);
@@ -114,19 +111,19 @@ public class DigiFidgiSurfaceView extends CustomSurfaceView implements SurfaceHo
     }
 
 
-    private void createOptionRects(float screenWidth, float bearingRadius){
-        int buttonSideLength = (int)(bearingRadius*1.25);
-        int margin = 24;
-        int endOptionLeft = (int)(screenWidth*.8);
+    private void createOptionRects(float screenWidth){
+        int buttonSideLength = (int)screenWidth/5;
+        int margin = buttonSideLength/3;
+
         mOptionsRects = new Rect[3];
-        Rect r = new Rect(endOptionLeft, margin, (int)(screenWidth - margin), margin + buttonSideLength);
-        mOptionsRects[0] = r;
+        Rect r = new Rect(margin, margin, margin + buttonSideLength, margin + buttonSideLength);
+        mOptionsRects[2] = r;
         Rect r1 = new Rect(r);
-        r1.offset(- buttonSideLength - (margin*2), 0);
+        r1.offset(buttonSideLength + (margin*2), 0);
         mOptionsRects[1] = r1;
         Rect r2 = new Rect(r1);
-        r2.offset(-buttonSideLength - (margin *2), 0);
-        mOptionsRects[2] = r2;
+        r2.offset(buttonSideLength + (margin *2), 0);
+        mOptionsRects[0] = r2;
     }
 
     @Override
