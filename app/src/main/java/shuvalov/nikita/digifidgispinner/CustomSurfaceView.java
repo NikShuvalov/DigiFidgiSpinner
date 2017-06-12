@@ -56,4 +56,5 @@ public abstract class CustomSurfaceView extends SurfaceView {
     public Rect getScreenBounds(){
         return mScreenBounds;
     }
+
 }

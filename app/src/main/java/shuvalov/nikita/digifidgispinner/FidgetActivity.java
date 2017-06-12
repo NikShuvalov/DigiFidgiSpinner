@@ -27,7 +27,7 @@ public class FidgetActivity extends AppCompatActivity implements DigiFidgiSurfac
     protected void onResume() {
         super.onResume();
         setUpOverlay();
-       SpinnerHandler.getInstance().stopSpinner();
+        SpinnerHandler.getInstance().stopSpinner();
 
     }
 

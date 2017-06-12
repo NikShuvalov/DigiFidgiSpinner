@@ -398,7 +398,7 @@ public class RunnerEngine {
         return Math.abs(mStartPoint - mSpinner.getCenter().x);
     }
 
-    interface ScoreCallback{
+    public interface ScoreCallback{
         void saveIfHighScore(int score);
     }
 }

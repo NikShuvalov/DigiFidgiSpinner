@@ -63,9 +63,12 @@ public class DigiFidgiSurfaceView extends CustomSurfaceView implements SurfaceHo
     }
 
 
-
     @Override
     public void surfaceCreated(SurfaceHolder surfaceHolder) {
+        if(getGraphicThread()!=null){
+            Log.d(TAG, "surfaceCreated: Huh");
+            return;}
+        
         Rect screenBounds = surfaceHolder.getSurfaceFrame();
         setScreenBounds(screenBounds);
         mCirclePosition = new PointF(screenBounds.centerX(),screenBounds.centerY());
@@ -95,12 +98,21 @@ public class DigiFidgiSurfaceView extends CustomSurfaceView implements SurfaceHo
         mIconOutlinePaint.setColor(mColorSelected);
         mIconOutlinePaint.setStyle(Paint.Style.STROKE);
         mIconOutlinePaint.setStrokeWidth(3f);
-        if(getGraphicThread()!=null){
-            return;}
-        setGraphicThread( new GraphicThread(surfaceHolder,this));
         setSurfaceReady(true);
+        setGraphicThread(new GraphicThread(surfaceHolder,this));
         startGraphicThread();
     }
+
+    @Override
+    public void surfaceChanged(SurfaceHolder surfaceHolder, int i, int i1, int i2) {
+
+    }
+
+    @Override
+    public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
+        setSurfaceReady(false);
+    }
+
 
     private void createOptionRects(float screenWidth, float bearingRadius){
         int buttonSideLength = (int)(bearingRadius*1.25);
@@ -115,16 +127,6 @@ public class DigiFidgiSurfaceView extends CustomSurfaceView implements SurfaceHo
         Rect r2 = new Rect(r1);
         r2.offset(-buttonSideLength - (margin *2), 0);
         mOptionsRects[2] = r2;
-    }
-
-    @Override
-    public void surfaceChanged(SurfaceHolder surfaceHolder, int i, int i1, int i2) {
-
-    }
-
-    @Override
-    public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
-        setSurfaceReady(false);
     }
 
     @Override
@@ -223,7 +225,7 @@ public class DigiFidgiSurfaceView extends CustomSurfaceView implements SurfaceHo
         return true;
     }
 
-    interface DigiFidgiWidgiCallback{
+    public interface DigiFidgiWidgiCallback{
         void onCriticalSpeed(float rpm);
         void onOptionSelected(int i);
     }
