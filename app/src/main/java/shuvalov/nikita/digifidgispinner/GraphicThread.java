@@ -2,12 +2,9 @@ package shuvalov.nikita.digifidgispinner;
 
 import android.annotation.SuppressLint;
 import android.graphics.Canvas;
-import android.util.Log;
 import android.view.SurfaceHolder;
 
 import java.util.concurrent.atomic.AtomicBoolean;
-
-import static android.content.ContentValues.TAG;
 
 /**
  * Created by NikitaShuvalov on 5/30/17.
@@ -16,24 +13,32 @@ import static android.content.ContentValues.TAG;
 public class GraphicThread extends Thread {
 
     private final SurfaceHolder mSurfaceHolder;
-    private DigiFidgiSurfaceView mFidgiSurfaceView;
+    private CustomSurfaceView mCustomSurfaceView;
     private AtomicBoolean mStop = new AtomicBoolean();
 
-    public GraphicThread(SurfaceHolder surfaceHolder, DigiFidgiSurfaceView fidgiSurfaceView) {
+    public GraphicThread(SurfaceHolder surfaceHolder, CustomSurfaceView customSurfaceView) {
         mSurfaceHolder = surfaceHolder;
-        mFidgiSurfaceView = fidgiSurfaceView;
+        mCustomSurfaceView = customSurfaceView;
         mStop.set(false);
     }
 
     @SuppressLint("WrongCall")
     @Override
     public void run() {
-        while(!mStop.get()){
+        if(!mStop.get() && !mCustomSurfaceView.isSurfaceReady()){
+            try {
+                sleep(100);
+                run();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        while(!mStop.get() && mCustomSurfaceView.isSurfaceReady()){
             Canvas c = null;
             try{
                 c = mSurfaceHolder.lockCanvas();
                 synchronized (mSurfaceHolder){
-                    if(!mStop.get()) mFidgiSurfaceView.onDraw(c);
+                    if(!mStop.get() && mCustomSurfaceView.isSurfaceReady()) mCustomSurfaceView.onDraw(c);
                 }
             }finally {
                 if(c != null)mSurfaceHolder.unlockCanvasAndPost(c);
@@ -44,6 +49,7 @@ public class GraphicThread extends Thread {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+
     }
 
     public void stopThread(){

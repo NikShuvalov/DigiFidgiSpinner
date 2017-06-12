@@ -22,8 +22,7 @@ import static android.content.ContentValues.TAG;
  * Created by NikitaShuvalov on 5/30/17.
  */
 
-public class DigiFidgiSurfaceView extends SurfaceView implements SurfaceHolder.Callback {
-    private GraphicThread mGraphicThread;
+public class DigiFidgiSurfaceView extends CustomSurfaceView implements SurfaceHolder.Callback {
     private Paint mPaint, mPaint2;
     private Paint mBodyPaint;
     private Paint mDebugTextPaint;
@@ -67,8 +66,8 @@ public class DigiFidgiSurfaceView extends SurfaceView implements SurfaceHolder.C
 
     @Override
     public void surfaceCreated(SurfaceHolder surfaceHolder) {
-        Rect screenBounds = new Rect();
-        getHitRect(screenBounds);
+        Rect screenBounds = surfaceHolder.getSurfaceFrame();
+        setScreenBounds(screenBounds);
         mCirclePosition = new PointF(screenBounds.centerX(),screenBounds.centerY());
 
         float width = screenBounds.width();
@@ -96,10 +95,11 @@ public class DigiFidgiSurfaceView extends SurfaceView implements SurfaceHolder.C
         mIconOutlinePaint.setColor(mColorSelected);
         mIconOutlinePaint.setStyle(Paint.Style.STROKE);
         mIconOutlinePaint.setStrokeWidth(3f);
-        if(mGraphicThread!=null){
+        if(getGraphicThread()!=null){
             return;}
-        mGraphicThread = new GraphicThread(surfaceHolder,this);
-        mGraphicThread.start();
+        setGraphicThread( new GraphicThread(surfaceHolder,this));
+        setSurfaceReady(true);
+        startGraphicThread();
     }
 
     private void createOptionRects(float screenWidth, float bearingRadius){
@@ -124,11 +124,11 @@ public class DigiFidgiSurfaceView extends SurfaceView implements SurfaceHolder.C
 
     @Override
     public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
-        mGraphicThread.stopThread();
+        setSurfaceReady(false);
     }
 
     @Override
-    protected void onDraw(Canvas canvas) {
+    public void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         Spinner spinner = SpinnerHandler.getInstance().getSpinner();
         spinner.spin(SystemClock.elapsedRealtime());
@@ -137,9 +137,9 @@ public class DigiFidgiSurfaceView extends SurfaceView implements SurfaceHolder.C
         spinner.drawOnToCanvas(canvas);
         debugText(canvas);
         float rpm = spinner.getRpm();
-        if(Math.abs(rpm)>1.5f){
+        if (Math.abs(rpm) > 1.5f) {
             mDigiFidgiWidgiCallback.onCriticalSpeed(rpm);
-        }
+    }
     }
 
     private void drawButtons(Canvas canvas){
@@ -170,11 +170,6 @@ public class DigiFidgiSurfaceView extends SurfaceView implements SurfaceHolder.C
         canvas.drawText(String.valueOf("Rpm :" + SpinnerHandler.getInstance().getSpinner().getRpm()), 50, 30, mDebugTextPaint);
     }
 
-    public void stopGraphicThread(){
-        if(mGraphicThread!=null && mGraphicThread.isAlive()){
-            mGraphicThread.stopThread();
-        }
-    }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {

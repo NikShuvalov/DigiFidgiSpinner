@@ -10,13 +10,14 @@ import android.os.Bundle;
 import android.widget.FrameLayout;
 
 import shuvalov.nikita.digifidgispinner.AppConstants;
+import shuvalov.nikita.digifidgispinner.CustomSurfaceView;
 import shuvalov.nikita.digifidgispinner.R;
 import shuvalov.nikita.digifidgispinner.Spinner;
 import shuvalov.nikita.digifidgispinner.SpinnerHandler;
 
 public class RunnerActivity extends AppCompatActivity implements RunnerEngine.ScoreCallback{
     private FrameLayout mGameContainer;
-    private RunnerSurfaceView mRunnerSurfaceView;
+    private CustomSurfaceView mRunnerSurfaceView;
 
 
     @Override
@@ -62,7 +63,7 @@ public class RunnerActivity extends AppCompatActivity implements RunnerEngine.Sc
     @Override
     protected void onPause() {
         super.onPause();
-        mRunnerSurfaceView.stopThread();
+        mRunnerSurfaceView.stopGraphicThread();
         mGameContainer.removeAllViews();
     }
 

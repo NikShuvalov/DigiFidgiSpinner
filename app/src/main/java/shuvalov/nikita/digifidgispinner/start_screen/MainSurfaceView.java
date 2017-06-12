@@ -10,24 +10,19 @@ import android.graphics.PointF;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.os.SystemClock;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
-import android.view.SurfaceView;
 
+import shuvalov.nikita.digifidgispinner.CustomSurfaceView;
+import shuvalov.nikita.digifidgispinner.GraphicThread;
 import shuvalov.nikita.digifidgispinner.R;
 import shuvalov.nikita.digifidgispinner.Spinner;
-import shuvalov.nikita.digifidgispinner.runner_game.RunnerEngine;
-
-import static android.content.ContentValues.TAG;
 
 /**
  * Created by NikitaShuvalov on 6/8/17.
  */
 
-public class MainSurfaceView extends SurfaceView implements SurfaceHolder.Callback {
-    private GraphicStartThread mGraphicStartThread;
-    private Rect mScreenBounds;
+public class MainSurfaceView extends CustomSurfaceView implements SurfaceHolder.Callback {
     private int mBackgroundColor;
     private RectF mGameModeRect, mCasualModeRect;
     private Paint mFramePaint;
@@ -36,6 +31,7 @@ public class MainSurfaceView extends SurfaceView implements SurfaceHolder.Callba
     private boolean mGameHover, mCasualHover;
     private String mTapDownOption;
     private Paint mHoverPaint;
+
 //    private RunnerEngine mRunnerEngine;
 
     public Paint mDebugPaint;
@@ -50,7 +46,7 @@ public class MainSurfaceView extends SurfaceView implements SurfaceHolder.Callba
 
     public MainSurfaceView(Context context, Callback mainSurfaceViewCallback) {
         super(context);
-
+        setSurfaceReady(false);
         mTapDownOption = "";
         mGameHover = false;
         mCasualHover = false;
@@ -79,16 +75,17 @@ public class MainSurfaceView extends SurfaceView implements SurfaceHolder.Callba
 
     @Override
     public void surfaceCreated(SurfaceHolder surfaceHolder) {
-        if( mGraphicStartThread!= null){
+        if( getGraphicThread()!= null){
             return;}
-        mGraphicStartThread = new GraphicStartThread(surfaceHolder, this);
-        mScreenBounds = surfaceHolder.getSurfaceFrame();
+        setGraphicThread(new GraphicThread(surfaceHolder, this));
+        setScreenBounds(surfaceHolder.getSurfaceFrame());
         createButtonRects();
 //        Rect r = new Rect();
 //        mGameModeRect.round(r);
 //        mRunnerEngine.setScreen(r);
         createDemoSpinner();
-        mGraphicStartThread.start();
+        setSurfaceReady(true);
+        startGraphicThread();
     }
 
     @Override
@@ -98,11 +95,11 @@ public class MainSurfaceView extends SurfaceView implements SurfaceHolder.Callba
 
     @Override
     public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
-
+        setSurfaceReady(false);
     }
 
     @Override
-    protected void onDraw(Canvas canvas) {
+    public void onDraw(Canvas canvas) {
         canvas.drawColor(mBackgroundColor);
         drawOptions(canvas);
 //        mRunnerEngine.runDemoMode();
@@ -120,12 +117,13 @@ public class MainSurfaceView extends SurfaceView implements SurfaceHolder.Callba
     }
 
     private void createButtonRects(){
-        float left = mScreenBounds.width() * BUTTON_MARGIN_PERCENT;
-        float top = mScreenBounds.height() * BUTTON_MARGIN_PERCENT;
-        float right = mScreenBounds.width() *  (1 - BUTTON_MARGIN_PERCENT);
-        float bottom = mScreenBounds.height() * BUTTON_SIZE_PERCENT;
+        Rect screenBounds = getScreenBounds();
+        float left = screenBounds.width() * BUTTON_MARGIN_PERCENT;
+        float top = screenBounds.height() * BUTTON_MARGIN_PERCENT;
+        float right = screenBounds.width() *  (1 - BUTTON_MARGIN_PERCENT);
+        float bottom = screenBounds.height() * BUTTON_SIZE_PERCENT;
         mGameModeRect = new RectF(left, top, right, bottom);
-        mCasualModeRect = new RectF(left, mScreenBounds.centerY() + top, right, bottom + mScreenBounds.centerY());
+        mCasualModeRect = new RectF(left, screenBounds.centerY() + top, right, bottom + screenBounds.centerY());
     }
 
     private void drawOptions(Canvas canvas){
@@ -174,11 +172,11 @@ public class MainSurfaceView extends SurfaceView implements SurfaceHolder.Callba
                 mCasualHover = false;
                 if(mGameModeRect.contains(event.getX(), event.getY()) && mTapDownOption.equals(GAME)){
                     mTapDownOption = "";
-                    stopThread();
+                    stopGraphicThread();
                     mCallback.onGameSelected();
                 }else if (mCasualModeRect .contains(event.getX(), event.getY()) && mTapDownOption.equals(CASUAL)){
                     mTapDownOption = "";
-                    stopThread();
+                    stopGraphicThread();
                     mCallback.onCasualSelected();
                 }else{
                     mTapDownOption = "";
@@ -188,12 +186,6 @@ public class MainSurfaceView extends SurfaceView implements SurfaceHolder.Callba
         return true;
     }
 
-
-    public void stopThread(){
-        if(mGraphicStartThread!=null && mGraphicStartThread.isAlive()) {
-            mGraphicStartThread.stopThread();
-        }
-    }
 
     public void demonstrateSpinner(){
         mDemoSpinner.spin(SystemClock.elapsedRealtime());

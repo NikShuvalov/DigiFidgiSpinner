@@ -5,6 +5,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.widget.FrameLayout;
 
+import shuvalov.nikita.digifidgispinner.CustomSurfaceView;
 import shuvalov.nikita.digifidgispinner.FidgetActivity;
 import shuvalov.nikita.digifidgispinner.R;
 import shuvalov.nikita.digifidgispinner.SpinnerHandler;
@@ -12,7 +13,7 @@ import shuvalov.nikita.digifidgispinner.runner_game.RunnerActivity;
 
 public class MainActivity extends AppCompatActivity implements MainSurfaceView.Callback {
     private FrameLayout mContainer;
-    private MainSurfaceView mMainSurfaceView;
+    private CustomSurfaceView mMainSurfaceView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,14 +40,14 @@ public class MainActivity extends AppCompatActivity implements MainSurfaceView.C
 
     @Override
     public void onGameSelected() {
-        mMainSurfaceView.stopThread();
+        mMainSurfaceView.stopGraphicThread();
         Intent intent = new Intent(this, RunnerActivity.class);
         startActivity(intent);
     }
 
     @Override
     public void onCasualSelected() {
-        mMainSurfaceView.stopThread();
+        mMainSurfaceView.stopGraphicThread();
         Intent intent = new Intent(this, FidgetActivity.class);
         startActivity(intent);
     }
@@ -54,7 +55,7 @@ public class MainActivity extends AppCompatActivity implements MainSurfaceView.C
     @Override
     protected void onPause() {
         super.onPause();
-        mMainSurfaceView.stopThread();
+        mMainSurfaceView.stopGraphicThread();
         mContainer.removeView(mMainSurfaceView);
     }
 

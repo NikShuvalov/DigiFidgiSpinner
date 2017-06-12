@@ -25,15 +25,12 @@
         <activity
             android:name=".runner_game.RunnerActivity"
             android:screenOrientation="landscape"
-            android:parentActivityName=".start_screen.MainActivity"
-            android:launchMode="singleTop">
+            android:parentActivityName=".start_screen.MainActivity">
         </activity>
         <activity android:name=".start_screen.MainActivity"
-            android:launchMode="singleInstance"
             android:screenOrientation="portrait">
             <intent-filter>
             <action android:name="android.intent.action.MAIN"/>
-
             <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
 

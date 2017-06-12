@@ -15,6 +15,8 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
 import shuvalov.nikita.digifidgispinner.AppConstants;
+import shuvalov.nikita.digifidgispinner.CustomSurfaceView;
+import shuvalov.nikita.digifidgispinner.GraphicThread;
 import shuvalov.nikita.digifidgispinner.R;
 import shuvalov.nikita.digifidgispinner.Spinner;
 
@@ -23,8 +25,7 @@ import shuvalov.nikita.digifidgispinner.Spinner;
  * Created by NikitaShuvalov on 6/6/17.
  */
 
-public class RunnerSurfaceView extends SurfaceView implements SurfaceHolder.Callback {
-    private RunnerThread mRunnerThread;
+public class RunnerSurfaceView extends CustomSurfaceView implements SurfaceHolder.Callback {
     private RunnerEngine mRunnerEngine;
     private int mSkyColor;
     private long mStartActionTime;
@@ -69,13 +70,15 @@ public class RunnerSurfaceView extends SurfaceView implements SurfaceHolder.Call
 
     @Override
     public void surfaceCreated(SurfaceHolder surfaceHolder) {
-        if(mRunnerThread!=null){
+        if(getGraphicThread()!=null){
             createPaints();
             return;}
-        mRunnerThread = new RunnerThread(surfaceHolder, this);
-        mRunnerThread.start();
-        mRunnerEngine.setScreen(surfaceHolder.getSurfaceFrame());
-
+        setGraphicThread( new GraphicThread(surfaceHolder, this));
+        startGraphicThread();
+        Rect screenBounds = surfaceHolder.getSurfaceFrame();
+        setScreenBounds(screenBounds);
+        mRunnerEngine.setScreen(screenBounds);
+        setSurfaceReady(true);
     }
 
     @Override
@@ -85,7 +88,7 @@ public class RunnerSurfaceView extends SurfaceView implements SurfaceHolder.Call
 
     @Override
     public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
-
+        setSurfaceReady(false);
     }
 
     @Override
@@ -195,12 +198,6 @@ public class RunnerSurfaceView extends SurfaceView implements SurfaceHolder.Call
                 break;
         }
         return true;
-    }
-
-    public void stopThread() {
-        if(mRunnerThread!=null && mRunnerThread.isAlive()) {
-            mRunnerThread.stopThread();
-        }
     }
 
 }
