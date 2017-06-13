@@ -169,7 +169,6 @@ public class DigiFidgiSurfaceView extends CustomSurfaceView implements SurfaceHo
         canvas.drawText(String.valueOf("Rpm :" + SpinnerHandler.getInstance().getSpinner().getRpm()), 50, 30, mDebugTextPaint);
     }
 
-
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         int action = MotionEventCompat.getActionMasked(event);

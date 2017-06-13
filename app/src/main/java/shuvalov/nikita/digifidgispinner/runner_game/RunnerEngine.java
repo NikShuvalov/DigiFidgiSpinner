@@ -1,5 +1,9 @@
 package shuvalov.nikita.digifidgispinner.runner_game;
 
+import android.content.Context;
+import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -8,11 +12,14 @@ import android.graphics.PointF;
 import android.graphics.Rect;
 import android.os.SystemClock;
 import android.support.annotation.Nullable;
+import android.util.Log;
 
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
+import shuvalov.nikita.digifidgispinner.R;
 import shuvalov.nikita.digifidgispinner.Spinner;
 
 
@@ -36,18 +43,24 @@ public class RunnerEngine {
     private boolean mGameActive;
     private boolean mDemoMode;
     private ScoreCallback mScoreCallback;
+    private Bitmap mCloudNear1, mCloudNear2, mCloudMid1, mCloudMid2, mCloudFar1, mCloudFar2;
+    private List<Bitmap> mBackgroundNear, mBackgroundMid, mBackgroundFar;
+    private Context mContext;
 
     private static final int MAX_HEIGHT_DIFF = 380; //Total jump height capable is 400. So I should allow a window.
     private static final float REFRESH_RATE = 30/1000;
     private static final float GRAVITY = 4f;
 
     //====================================== Constructors/Set-up =======================================================
-    public RunnerEngine(Spinner spinner, @Nullable ScoreCallback scoreCallback, boolean demoMode) {
+    public RunnerEngine(Context context, Spinner spinner, @Nullable ScoreCallback scoreCallback, boolean demoMode) {
+        mContext = context;
+
         mDemoMode = demoMode;
         mSpinner = spinner;
         mLastUpdate = SystemClock.elapsedRealtime();
         mScoreCallback = scoreCallback;
         createPaints();
+        loadSprites();
     }
 
     public RunnerEngine(@Nullable ScoreCallback scoreCallback, boolean demoMode){
@@ -90,21 +103,87 @@ public class RunnerEngine {
         mOutlinePaint.setStrokeWidth(4f);
     }
 
+    private void loadSprites(){
+        mBackgroundNear = new ArrayList<>();
+        mBackgroundMid = new ArrayList<>();
+        mBackgroundFar = new ArrayList<>();
+
+        Resources res = mContext.getResources();
+        mCloudFar1 = BitmapFactory.decodeResource(res, R.drawable.cloud1);
+        mCloudFar2 = BitmapFactory.decodeResource(res, R.drawable.cloud2);
+
+        mCloudNear1 = BitmapFactory.decodeResource(res, R.drawable.fg_cloud1);
+        mCloudNear2 = BitmapFactory.decodeResource(res, R.drawable.fg_cloud2);
+
+        mCloudMid1 = BitmapFactory.decodeResource(res, R.drawable.mid_cloud1);
+        mCloudMid2 = BitmapFactory.decodeResource(res, R.drawable.mid_cloud2);
+    }
+
     private void generateStartMap(){
+        Random rng = new Random();
         mMapHeights.clear();
         int startPlatformHeight = (int)(mScreenBounds.centerY() *1.5f);
         for(int i = 0; i<15; i ++){
             mEndHeight = startPlatformHeight;
             mMapHeights.add(startPlatformHeight);
+            if(i%2 == 0){
+                addTopLayerBackground(rng.nextInt(5));
+                addMidLayerBackground(rng.nextInt(5));
+                addBotLayerBackground(rng.nextInt(5));
+            }else{
+                mBackgroundNear.add(null);
+                mBackgroundMid.add(null);
+                mBackgroundFar.add(null);
+            }
         }
         preloadNextSection();
         mDistance = 0;
+    }
+
+    private void addTopLayerBackground(int randomInt){
+        switch(randomInt){
+            case 1:
+                mBackgroundNear.add(mCloudNear1);
+                break;
+            case 2:
+                mBackgroundNear.add(mCloudNear2);
+                break;
+            default:
+                mBackgroundNear.add(null);
+        }
+    }
+
+    private void addMidLayerBackground(int randomint){
+        switch(randomint){
+            case 1:
+                mBackgroundMid.add(mCloudMid1);
+                break;
+            case 2:
+                mBackgroundMid.add(mCloudMid2);
+                break;
+            default:
+                mBackgroundMid.add(null);
+        }
+    }
+
+    private void addBotLayerBackground(int randomint){
+        switch(randomint){
+            case 1:
+                mBackgroundFar.add(mCloudFar1);
+                break;
+            case 2:
+                mBackgroundFar.add(mCloudFar2);
+                break;
+            default:
+                mBackgroundFar.add(null);
+        }
     }
 
     private void preloadNextSection(){
         int maxPlatformHeight = mScreenBounds.centerY();
         Random rng = new Random();
         boolean platform = mMapHeights.get(mMapHeights.size()-1) >=0;
+        int i = 0;
         while(mMapHeights.size()<40){
             if(!platform) {
                 int platLength = rng.nextInt(10) + 2;
@@ -114,6 +193,18 @@ public class RunnerEngine {
                 }
                 for (int j = 0; j < platLength; j++) {
                     mMapHeights.add(platHeight);
+                    if(i%2 == 0){
+                        addTopLayerBackground(rng.nextInt(5));
+                        addMidLayerBackground(rng.nextInt(5));
+                        if(i%4 == 0) {
+                            addBotLayerBackground(rng.nextInt(5));
+                        }
+                    }else{
+                        mBackgroundNear.add(null);
+                        mBackgroundMid.add(null);
+                        mBackgroundFar.add(null);
+                    }
+                    i++;
                 }
                 platform = true;
                 mEndHeight = platHeight;
@@ -127,10 +218,85 @@ public class RunnerEngine {
         }
     }
 
+    public Canvas drawTerrain(Canvas canvas){
+        Path path  = new Path();
+        path.moveTo(mStartPoint, mScreenBounds.height());
+        boolean dropOff = true;
+        for(int i = 0; i< mMapHeights.size(); i ++){
+            int val = mMapHeights.get(i);
+            if (val == -1 && dropOff){
+                path.lineTo(mStartPoint + mSectionLength * (i-1), mScreenBounds.height());
+                dropOff= false;
+            }else if (val !=-1 && !dropOff){
+                path.lineTo(mStartPoint+mSectionLength* (i-1), val);
+                dropOff = true;
+            }
+            path.lineTo(mStartPoint + mSectionLength*i, val == -1 ? mScreenBounds.height() : val);
+        }
+        path.lineTo(mStartPoint + mSectionLength*mMapHeights.size()-1,mScreenBounds.height());
+        path.close();
+        canvas.drawPath(path, mTerrainPaint);
+        canvas.drawPath(path, mOutlinePaint);
+        return canvas;
+    }
+
+    public Canvas drawBackground(Canvas canvas){
+        drawBotLayer(canvas);
+        drawMidLayer(canvas);
+        drawTopLayer(canvas);
+        return canvas;
+    }
+
+    private void drawTopLayer(Canvas canvas){
+        Rect r = new Rect();
+        int sideLength = (int)mSectionLength;
+        for(int i = 0; i < mBackgroundNear.size(); i ++){
+            int left = (int)(mStartPoint + (mSectionLength * i));
+            r.set(left, 100, left+sideLength, 100 + sideLength);
+            Bitmap b = mBackgroundNear.get(i);
+            if(b != null){
+                canvas.drawBitmap(b, null, r, null);
+            }
+        }
+    }
+
+    private void drawMidLayer(Canvas canvas){
+        Rect r = new Rect();
+        int sideLength = (int)(mSectionLength *.8);
+        for(int i = 0; i < mBackgroundMid.size(); i ++){
+            int left = (int)(mStartPoint/2 + (mSectionLength * i));
+            r.set(left, 80, left+sideLength, 80 + sideLength);
+            Bitmap b = mBackgroundMid.get(i);
+            if(b != null){
+                canvas.drawBitmap(b, null, r, null);
+            }
+        }
+    }
+
+    private void drawBotLayer(Canvas canvas){
+        Rect r = new Rect();
+        int sideLength = (int)(mSectionLength * .6);
+        for(int i = 0; i < mBackgroundFar.size(); i ++){
+            int left = (int)(mStartPoint/4 + (mSectionLength * i));
+            r.set(left, 60, left+sideLength, 60 + sideLength);
+            Bitmap b = mBackgroundFar.get(i);
+            if(b != null){
+                canvas.drawBitmap(b, null, r, null);
+            }
+        }
+    }
+
     private void loadNextSectionIfNecessary(){
         if(mStartPoint <= mReloadPoint){
             for(int i =19; i >-1; i--){
                 mMapHeights.remove(i);
+                mBackgroundNear.remove(i);
+                if(i %2 == 0){
+                    mBackgroundMid.remove(i/2);
+                }
+                if(i%4 == 0){
+                    mBackgroundFar.remove(i/4);
+                }
                 mStartPoint+=mSectionLength;
             }
             preloadNextSection();
@@ -139,7 +305,7 @@ public class RunnerEngine {
 
 
     // ===================================== Demo methods ============================================
-    //FixMe: Needs major tinkering to work properly, due to the face I usually just draw everything offscreen, for the Demo I need to draw everything within a fixed window.
+    //FixMe: Needs major tinkering to work properly, due to the fact I usually just draw everything offscreen, for the Demo I need to draw everything within a fixed window.
     private void generateDemoMap(){
         int startPlatformHeight = (int)(mScreenBounds.centerY() *1.5f);
         int maxPlatformHeight = mScreenBounds.centerY();
@@ -354,28 +520,6 @@ public class RunnerEngine {
         }
         int section = (int)(x/mSectionLength);
         return mMapHeights.get(section+1);
-    }
-
-    public Canvas drawTerrain(Canvas canvas){
-        Path path  = new Path();
-        path.moveTo(mStartPoint, mScreenBounds.height());
-        boolean dropOff = true;
-        for(int i = 0; i< mMapHeights.size(); i ++){
-            int val = mMapHeights.get(i);
-            if (val == -1 && dropOff){
-                path.lineTo(mStartPoint + mSectionLength * (i-1), mScreenBounds.height());
-                dropOff= false;
-            }else if (val !=-1 && !dropOff){
-                path.lineTo(mStartPoint+mSectionLength* (i-1), val);
-                dropOff = true;
-            }
-            path.lineTo(mStartPoint + mSectionLength*i, val == -1 ? mScreenBounds.height() : val);
-        }
-        path.lineTo(mStartPoint + mSectionLength*mMapHeights.size()-1,mScreenBounds.height());
-        path.close();
-        canvas.drawPath(path, mTerrainPaint);
-        canvas.drawPath(path, mOutlinePaint);
-        return canvas;
     }
 
     private boolean checkIfFellInPit(PointF spinnerCenter, float stableYCenter){

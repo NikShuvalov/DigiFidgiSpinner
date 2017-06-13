@@ -57,7 +57,7 @@ public class RunnerActivity extends AppCompatActivity implements RunnerEngine.Sc
         bodyPaint.setStyle(Paint.Style.FILL);
 
         Spinner spinner = new Spinner(new PointF(500, 500),10f, 3, bodyPaint, paint1, paint2);
-        return new RunnerEngine(spinner, this, false);
+        return new RunnerEngine(this, spinner, this, false);
     }
 
     @Override

@@ -96,6 +96,7 @@ public class RunnerSurfaceView extends CustomSurfaceView implements SurfaceHolde
         canvas.drawColor(mSkyColor);
         mRunnerEngine.getSpinner().spin(SystemClock.elapsedRealtime());
         mRunnerEngine.run();
+        mRunnerEngine.drawBackground(canvas);
         mRunnerEngine.drawTerrain(canvas);
         float rpm = Math.abs(mRunnerEngine.getSpinner().getRpm());
         int remainingTime = (int)(mRunnerEngine.getTimeLeft()/1000);
