@@ -29,7 +29,7 @@ public class RunnerSurfaceView extends CustomSurfaceView implements SurfaceHolde
     private RunnerEngine mRunnerEngine;
     private int mSkyColor;
     private long mStartActionTime;
-    private Paint mDebugPaint;
+    private Paint mHeaderPaint;
     private Paint mGameOverPaint, mEndStatsPaint;
     private int mBlinkDuration;
     private boolean mBlinking;
@@ -55,9 +55,9 @@ public class RunnerSurfaceView extends CustomSurfaceView implements SurfaceHolde
     private void createPaints(){
         mSkyColor = Color.argb(255, 175, 200, 235);
 
-        mDebugPaint = new Paint();
-        mDebugPaint.setColor(Color.YELLOW);
-        mDebugPaint.setTextSize(30f);
+        mHeaderPaint = new Paint();
+        mHeaderPaint.setColor(Color.YELLOW);
+        mHeaderPaint.setTextSize(45f);
 
         mGameOverPaint = new Paint();
         mGameOverPaint.setColor(Color.WHITE);
@@ -98,18 +98,21 @@ public class RunnerSurfaceView extends CustomSurfaceView implements SurfaceHolde
         mRunnerEngine.run();
         mRunnerEngine.drawBackground(canvas);
         mRunnerEngine.drawTerrain(canvas);
-        float rpm = Math.abs(mRunnerEngine.getSpinner().getRpm());
         int remainingTime = (int)(mRunnerEngine.getTimeLeft()/1000);
         int distance = (int)Math.abs(mRunnerEngine.getDistance());
-        canvas.drawText("RPM:" + rpm, 50, 50, mDebugPaint);
-        canvas.drawText("Distance: " + distance, 50, 100, mDebugPaint);
-        canvas.drawText("Time left: " + remainingTime, canvas.getWidth()*.75f,50, mDebugPaint);
         mRunnerEngine.getSpinner().drawOnToCanvasRunner(canvas);
         if(mTutorial){
             drawTutorialOverlay(canvas);
         }else if(mRunnerEngine.isGameOver()){
             drawGameOverOverlay(canvas);
         }
+        canvas.drawText("Distance: ", 50, 50, mHeaderPaint);
+        String distanceText = String.valueOf(distance);
+        canvas.drawText(distanceText, 50 + (6-distanceText.length()) * 15, 100, mHeaderPaint);
+
+        canvas.drawText("Time", canvas.getWidth()*.5f,50, mHeaderPaint);
+        String timeLeft = String.valueOf(remainingTime);
+        canvas.drawText(timeLeft, canvas.getWidth()*.5f + (4 - timeLeft.length()) *10, 100, mHeaderPaint);
     }
 
     private void drawTutorialOverlay(Canvas canvas){
@@ -200,5 +203,4 @@ public class RunnerSurfaceView extends CustomSurfaceView implements SurfaceHolde
         }
         return true;
     }
-
 }
