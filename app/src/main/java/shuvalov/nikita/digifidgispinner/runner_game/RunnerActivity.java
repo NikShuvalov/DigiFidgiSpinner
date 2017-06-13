@@ -7,32 +7,36 @@ import android.graphics.Paint;
 import android.graphics.PointF;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.FrameLayout;
 
 import shuvalov.nikita.digifidgispinner.AppConstants;
 import shuvalov.nikita.digifidgispinner.CustomSurfaceView;
 import shuvalov.nikita.digifidgispinner.R;
 import shuvalov.nikita.digifidgispinner.Spinner;
-import shuvalov.nikita.digifidgispinner.SpinnerHandler;
 
 public class RunnerActivity extends AppCompatActivity implements RunnerEngine.ScoreCallback{
     private FrameLayout mGameContainer;
     private CustomSurfaceView mRunnerSurfaceView;
+    private boolean mResumed;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_runner);
+        mResumed = false;
 
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        findViews();
-        setUpSurfaceView();
-
+        if(!mResumed) {
+            findViews();
+            setUpSurfaceView();
+        }
+        mResumed = true;
     }
 
     private void findViews(){
@@ -65,6 +69,7 @@ public class RunnerActivity extends AppCompatActivity implements RunnerEngine.Sc
         super.onPause();
         mRunnerSurfaceView.stopGraphicThread();
         mGameContainer.removeAllViews();
+        mResumed = false;
     }
 
 

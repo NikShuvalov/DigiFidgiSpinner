@@ -46,6 +46,7 @@ public class RunnerEngine {
     private Bitmap mCloudNear1, mCloudNear2, mCloudMid1, mCloudMid2, mCloudFar1, mCloudFar2;
     private List<Bitmap> mBackgroundNear, mBackgroundMid, mBackgroundFar;
     private Context mContext;
+    private boolean mLazyLoaded;
 
     private static final int MAX_HEIGHT_DIFF = 380; //Total jump height capable is 400. So I should allow a window.
     private static final float REFRESH_RATE = 30/1000;
@@ -136,8 +137,8 @@ public class RunnerEngine {
                 mBackgroundFar.add(null);
             }
         }
-        preloadNextSection();
         mDistance = 0;
+        mLazyLoaded = false;
     }
 
     private void addTopLayerBackground(int randomInt){
@@ -390,6 +391,10 @@ public class RunnerEngine {
         long elapsedTime = currentTime - mLastUpdate;
         if(elapsedTime > REFRESH_RATE){
             if(!mGameOver && mGameActive) {
+                if(!mLazyLoaded){
+                    mLazyLoaded = true;
+                    preloadNextSection();
+                }
                 mLastUpdate = currentTime;
                 float distanceCovered = mSpinner.getRpm() * elapsedTime / 4;
                 mStartPoint += distanceCovered;
@@ -497,7 +502,6 @@ public class RunnerEngine {
     public boolean isGameActive() {
         return mGameActive;
     }
-
 
     public boolean isGameOver(){
         return mGameOver;
